@@ -1,59 +1,114 @@
 $('document').ready(function() {
+	var $state = {
+		feedTemplate: $('#content-feeds').children().first().clone(),
+		initialSearchText: "news",
+		searchText: "",
+		genericWikiThumbnail: "https://upload.wikimedia.org/wikipedia/en/2/28/WikipediaMobileAppLogo.png"
+	};
+
+
 	function getFeeds(searchText) {
 		var endpoint = "https://en.wikipedia.org/w/api.php?";
 		var params = {
 			"action": "query",
 			"format": "json",
-			"maxlag": "10",
-			"prop": "extracts|images|info",
-			"inprop": "url",
+			"prop": "extracts|info|pageimages",
 			"generator": "search",
-			"redirects": 1,
 			"exintro": 1,
-			"explaintext": 1,
-			"exsectionformat": "plain",
-			"imlimit": "1",
+			// "explaintext": 1,
+			"exsectionformat": "wiki",
+			"inprop": "url",
+			"piprop": "thumbnail",
+			"pithumbsize": "300",
+			"pilicense": "any",
+			"gsrlimit": "20",
 			"gsrsearch": ""
 		};
 
 		return new Promise(function (resolve, reject) {			
-			params.gsrsearch = searchText;
+			params.gsrsearch = encodeURIComponent(searchText);
       		var cors = "https://crossorigin.me/";
 			var url = cors + endpoint + $.param(params);
 			$.getJSON(url, resolve);
 		});
 	}
 
-	// TEST this var p = getFeeds("man").then(formatFeeds).then(function(d) {console.log(d)});
 	function formatFeeds(res) {
-		var feeds = $.makeArray(res.query.pages);
-		var ff = $.map(feeds, function(key, feed) {
-			return {
-				summary: feed.extract,
-				url: feed.fullurl,
-				image: feed.images[0]
+		var invalidFeed = null;
+
+		return new Promise(function(resolve, reject) {
+			try {
+				var feeds = res.query.pages;
+				var ff = $.map(feeds, function(feed, index) {
+					try {
+						return {
+							title: feed.title,
+							summary: feed.extract,
+							url: feed.fullurl,
+							thumbnail: feed.hasOwnProperty('thumbnail') ? feed.thumbnail.source : $state.genericWikiThumbnail
+						};
+					}
+					catch(err) {
+						// console.log('Error formating feeds', feed);
+						return invalidFeed;
+					}
+				}).filter(function(feed) {
+					return feed !== invalidFeed;
+				});
+
+				resolve(ff);
+			} catch(error) {
+				reject('Error formating feeds', feeds);
 			}
 		});
-		return Promise.resolve(ff);
 	}
 
-	function performSearch() {
-		var text = $("#search-form").val();
-		console.log("You searched for: ", text);
+	function performSearch(text) {
+		// console.log('You are searching for', text, $("#search-form").val());
 
+		// Simple caching
+		if ( !text || text === $state.searchText) {
+			return;
+		}
+
+
+		$state.searchText = text;
 		getFeeds(text)
 			.then(formatFeeds)
-			.then(updateView)
+			.then(function (feeds) {
+				Promise.resolve(updateView(feeds));
+			})
 			.catch(function(error) {
 				console.log(error);
 			});
 	}
 
-	$("#search-button").on("click", performSearch);
+	function updateView(feeds) {
+		var feed_nodes = feeds.map(function(feed) {
+			var t = $state.feedTemplate.clone();
+			var title = t.find('.feed-title a');
+				title.text(feed.title);
+				title.attr('href', feed.url);
+
+			t.find('.feed-thumbnail').attr('href', feed.url);
+			t.find('.feed-thumbnail img').attr('src', feed.thumbnail);
+			t.find('.feed-content').html($.parseHTML(feed.summary));
+			return t;
+		});
+		$('#content-feeds').empty();
+		$('#content-feeds').append(feed_nodes);
+	}
+
+	$("#search-button").on("click", function (event) {
+		performSearch($("#search-form").val());
+	});
 	$("#search-form").keypress(function (event) {
 		if(event.which === 13) {
 			event.preventDefault();
-			performSearch();
+			performSearch($("#search-form").val());
 		}
 	});
+
+	//default content
+	performSearch($state.initialSearchText);
 });

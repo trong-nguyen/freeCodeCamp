@@ -9,24 +9,37 @@
 <body>
   <div class="container text-center" id="content-main">
     <h3 class="display-3">Wikipedia Feeds</h3>
-    <a class="btn btn-lg btn-outline-primary m-3" href="https://en.wikipedia.org/wiki/Special:Random" target="_blank">Feeling Lucky? Read a random article</a>
-    <div class="input-group m-3">
+    <a class="btn btn-lg btn-outline-primary m-3" href="https://en.wikipedia.org/wiki/Special:Random" target="_blank">Feel Lucky? Read a random article</a>
+    <div class="input-group my-5">
       <input class="form-control form-control-lg" type="text" placeholder="Or learn something new .." id="search-form">
       <span class="input-group-btn">
         <button type="submit" class="btn btn-success btn-lg" id="search-button">Search</button>
       </span>
     </div>
-    <div id="content-feeds" class="mt-5">
-      <div class="row text-left m-3">
-        <div class="col-3 feed-image">Image</div>
-        <div class="col-9">
-        <h3 class="feed-title">Feed Title</h3>
-        <p class="feed-content">Feed Content There's a lot going on recently</p>
+    <div id="content-feeds" class="mt-5 card rounded">
+      <div class="row text-left m-5">
+        <div class="col-md-3">
+          <a href="#" target="_blank" class="alert-info feed-thumbnail">
+            <img src="#" class="img-thumbnail rounded">
+          </a>
         </div>
-      </div>
+        <div class="col-md-9">
+          <h3 class="feed-title">
+            <a href="#" target="_blank" class="bg-primary text-white">Feed Title</a>
+          </h3>
+          <div class="bd-callout bd-callout-info">
+            <p class="feed-content lead">Feed Content: there's a lot going on recently</p>
+          </div>
+        </div>
+      </div>    
     </div>
   </div>
 
+<div class="text-center mt-5">
+  <p>By 
+    <a href="https://www.linkedin.com/in/nguyentrong/">Luke Production</a>
+  </p>
+</div>
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script type="text/javascript" src="scripts.js"></script>
 </body>
