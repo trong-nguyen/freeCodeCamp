@@ -1,7 +1,7 @@
 $('document').ready(function() {
 	var $state = {
 		feedTemplate: $('#content-feeds').children().first().clone(),
-		initialSearchText: "news",
+		initialSearchText: "euler",
 		searchText: "",
 		genericWikiThumbnail: "https://upload.wikimedia.org/wikipedia/en/2/28/WikipediaMobileAppLogo.png"
 	};
@@ -27,7 +27,8 @@ $('document').ready(function() {
 
 		return new Promise(function (resolve, reject) {			
 			params.gsrsearch = encodeURIComponent(searchText);
-      		var cors = "https://crossorigin.me/";
+      		// var cors = "https://crossorigin.me/";
+      		var cors = "http://cors-anywhere.herokuapp.com/";
 			var url = cors + endpoint + $.param(params);
 			$.getJSON(url, resolve);
 		});
@@ -83,6 +84,11 @@ $('document').ready(function() {
 			});
 	}
 
+	function parseContent(content) {
+		var e = $.parseHTML(content);
+		return e;
+	}
+
 	function updateView(feeds) {
 		var feed_nodes = feeds.map(function(feed) {
 			var t = $state.feedTemplate.clone();
@@ -92,11 +98,14 @@ $('document').ready(function() {
 
 			t.find('.feed-thumbnail').attr('href', feed.url);
 			t.find('.feed-thumbnail img').attr('src', feed.thumbnail);
-			t.find('.feed-content').html($.parseHTML(feed.summary));
+			t.find('.feed-content').html(parseContent(feed.summary));
 			return t;
 		});
 		$('#content-feeds').empty();
-		$('#content-feeds').append(feed_nodes);
+		$('#content-feeds').append(feed_nodes);	
+
+		// Put a task queue to MathJax asking it render math elements
+		MathJax.Hub.Queue(["Typeset", MathJax.Hub, "content-feeds"]);
 	}
 
 	$("#search-button").on("click", function (event) {
