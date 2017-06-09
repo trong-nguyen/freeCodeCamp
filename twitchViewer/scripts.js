@@ -65,7 +65,8 @@ $('document').ready(function() {
 				display_name: res.display_name,
 				name: res.name,
 				logo: res.logo || defaultStreamerLogo,
-				url: res._links.self
+				url: res._links.self,
+				bio: res.bio
 			};
 		}
 		catch(err) {
@@ -173,7 +174,6 @@ $('document').ready(function() {
 
 			var t = $state.template.clone();
 
-			t.find('.streamer-avatar').attr('href', profile.url);
 			t.find('.streamer-avatar img').attr('src', profile.logo);
 			t.find('.streamer-name').text(profile.display_name);
 
@@ -186,6 +186,8 @@ $('document').ready(function() {
 				t.addClass('display-unknown');
 			} else if (stream) {
 				var channel = stream.channel;
+				t.find('.streamer-avatar').attr('href', channel.url);
+				t.find('.streamer-bio').text(profile.bio);
 
 				t.find('.stream-live')
 					.text('Streaming')
@@ -197,16 +199,14 @@ $('document').ready(function() {
 					.attr('href', channel.url)
 					.text(channel.status);
 
-				t.find('.stream-views').text(stream.viewers + ' viewers');
-				t.find('.stream-preview').attr('href', channel.url);
-				t.find('.stream-preview img').attr('src', stream.preview);
-
 				var playerID = makePlayerId(streamer);
 				t.find('.stream-player').attr('id', playerID);
 
-
 				t.addClass('display-streaming');
 			} else {
+				t.find('.streamer-avatar').attr('href', 'https://www.twitch.tv/' + profile.name);
+				t.find('.streamer-bio').text(profile.bio);
+
 				t.find('.stream-live')
 					.text('Offline')
 					.addClass('badge-warning');
