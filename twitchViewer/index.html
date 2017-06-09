@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="styles.css" />
+</head>
+<body>
+  <div class="container" id="content-main">
+    <h3 class="display-3 text-center text-white mb-5">Twitch Viewer</h3>
+    <div class="stream-header">
+      <div class="row mx-3 px-3">
+        <div class="col-md-2 text-white text-center">Streamer</div>
+        <div class="col-md-10">
+          <div class="dropdown">
+          <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdown-button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Display</button>
+          <ul class="dropdown-menu">
+            <li><a href="#" class="dropdown-item" selected>All</a></li>
+            <li><a href="#" class="dropdown-item">Streaming</a></li>
+            <li><a href="#" class="dropdown-item">Offline</a></li>
+            <li><a href="#" class="dropdown-item">Unknown</a></li>
+          </ul>
+        </div>
+        </div>
+      </div>
+    </div>
+
+    
+    <div id="content-streamers">
+      <div class="row m-3 p-3 stream">
+        <div class="col-md-2 text-center">
+          <a href="" target="_blank" class="streamer-avatar">
+            <img src="https://upload.wikimedia.org/wikipedia/en/2/28/WikipediaMobileAppLogo.png" class="img-thumbnail mx-auto">
+          </a>
+          <div class="text-center">
+            <p class="streamer-name">Mighty streamer</p>
+            <div class="stream-live badge">Online</div>
+            <p class="streamer-game"></p>
+          </div>
+        </div>
+        <div class="col-md-10">
+          <div class="stream-details">
+            <div><a href="#" target="_blank" class="stream-status lead"></a></div>
+            <div class="player-container">
+              <div class="stream-player" id=""></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+<div class="text-center mt-5">
+  <p class="text-white">By 
+    <a href="https://www.linkedin.com/in/nguyentrong/">Luke Production</a>
+  </p>
+</div>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tether/1.4.0/js/tether.min.js" integrity="sha384-DztdAPBWPRXSA/3eYEEUWrWCy7G5KFbe8fFjk5JAIxUYHKkDx6Qin1DkWx51bBrb" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>
+<script src= "http://player.twitch.tv/js/embed/v1.js"></script>
+<script type="text/javascript" src="scripts.js"></script>
+</body>
+</html>
+

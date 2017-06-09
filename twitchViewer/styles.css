@@ -1,0 +1,44 @@
+body {
+	background: url('https://cdn.senshudo.tv/images/uploads/news/2014/05/19/1400539292_twitch_twitch_tv_live_video_games_1920x1080_78885.jpg')
+}
+
+.img-thumbnail {
+	border-radius: 50%;
+    border: 0 none;
+    box-shadow: none;
+}
+
+.stream {
+	/* max-width: 640px; */
+	background-color: rgba(0,0,0,0.6);
+	border-radius: 5px;
+	color: white;
+}
+
+a:link {
+	color: #9bf;
+}
+
+a:visited {
+	color: #9bf;
+}
+
+a:hover {
+	color: #9bf;
+} 
+
+.player-container {
+    position: relative;
+    padding-bottom: 56.25%;
+    padding-top: 35px;
+    height: 0;
+    overflow: hidden;
+}
+
+.player-container iframe {
+    position: absolute;
+    top:0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
