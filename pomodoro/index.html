@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
+  <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" type="text/css" href="styles.css" />
+</head>
+<body>
+<h1 class="display-4 text-center">Calculator</h1>
+
+<div class="container mt-5 rounded mx-auto">
+  <div class="row pt-3 led">
+    <div class="col">
+      <p class="form-control-static display-4 text-right" id="input-field">0.</p> 
+    </div>
+  </div>
+  <div class="row led">
+    <div class="col">
+      <p class="form-control-static display-5 text-right" id="input-chain">0.</p> 
+    </div>
+  </div>
+  <div class="keyboard">
+    <div class="row">
+      <div class="col-9 text-center numeric-key py-3" id="ctrl-ac"> <a href="#" class="btn btn-danger btn-block" role="button">AC</a></div>
+      <div class="col-3 text-center numeric-key py-3" id="oper-div"> <a href="#" class="btn btn-warning btn-block" role="button">/</a></div>
+    </div>
+    <div class="row">
+      <div class="col-3 text-center numeric-key py-3" id="num-7"> <a href="#" class="btn btn-primary btn-block" role="button">7</a></div>
+      <div class="col-3 text-center numeric-key py-3" id="num-8"> <a href="#" class="btn btn-primary btn-block" role="button">8</a></div>
+      <div class="col-3 text-center numeric-key py-3" id="num-9"> <a href="#" class="btn btn-primary btn-block" role="button">9</a></div>
+      <div class="col-3 text-center numeric-key py-3" id="oper-mul"> <a href="#" class="btn btn-warning btn-block" role="button">x</a></div>
+    </div>
+    <div class="row">
+      <div class="col-3 text-center numeric-key py-3" id="num-4"> <a href="#" class="btn btn-primary btn-block" role="button">4</a></div>
+      <div class="col-3 text-center numeric-key py-3" id="num-5"> <a href="#" class="btn btn-primary btn-block" role="button">5</a></div>
+      <div class="col-3 text-center numeric-key py-3" id="num-6"> <a href="#" class="btn btn-primary btn-block" role="button">6</a></div>
+      <div class="col-3 text-center numeric-key py-3" id="oper-sub"> <a href="#" class="btn btn-warning btn-block" role="button">-</a></div>
+    </div>
+    <div class="row">
+      <div class="col-3 text-center numeric-key py-3" id="num-1"> <a href="#" class="btn btn-primary btn-block" role="button">1</a></div>
+      <div class="col-3 text-center numeric-key py-3" id="num-2"> <a href="#" class="btn btn-primary btn-block" role="button">2</a></div>
+      <div class="col-3 text-center numeric-key py-3" id="num-3"> <a href="#" class="btn btn-primary btn-block" role="button">3</a></div>
+      <div class="col-3 text-center numeric-key py-3" id="oper-add"> <a href="#" class="btn btn-warning btn-block" role="button"> +</a></div>
+    </div>
+    <div class="row">
+      <div class="col-6 text-center numeric-key py-3" id="num-0"> <a href="#" class="btn btn-primary btn-block" role="button">0</a></div>
+      <div class="col-3 text-center numeric-key py-3" id="num-point"> <a href="#" class="btn btn-primary btn-block" role="button">.</a></div>
+      <div class="col-3 text-center numeric-key py-3" id="ctrl-equal"> <a href="#" class="btn btn-success btn-block" role="button">=</a></div>
+    </div>
+  </div>
+</div>
+
+<div class="text-center mt-5">
+  <p class="text-white">By 
+    <a href="https://www.linkedin.com/in/nguyentrong/">Luke Production</a>
+  </p>
+</div>
+
+
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script type="text/javascript" src="scripts.js"></script>
+</body>
+</html>
+
