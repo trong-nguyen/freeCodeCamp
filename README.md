@@ -1,9 +1,9 @@
 # Repo for [freeCodeCamp](https://www.freecodecamp.com) projects
 
 ## Front-end:
-- LocalWeather
-- Wikipedia Feeds
-- TwitchTV Viewer
+- [LocalWeather](localWeather/)
+- [Wikipedia Feeds](wikipediaViewer/)
+- [TwitchTV Viewer](twitchViewer/)
 
 ## Algorithms:
 ### Roman conversions ([here](http://www.rapidtables.com/convert/number/how-number-to-roman-numerals.htm)): 
