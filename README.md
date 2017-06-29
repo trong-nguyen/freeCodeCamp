@@ -1,9 +1,11 @@
 # Repo for [freeCodeCamp](https://www.freecodecamp.com) projects
 
 ## Front-end:
-- [LocalWeather](localWeather/)
-- [Wikipedia Feeds](wikipediaViewer/)
-- [TwitchTV Viewer](twitchViewer/)
+- [LocalWeather](localWeather/): display weather at current location, custom units
+- [Wikipedia Feeds](wikipediaViewer/): display wikipedia feeds of random or entered topics.
+- [TwitchTV Viewer](twitchViewer/): view streaming status from a prepopulated list of streamers, embedded preview capability if the streamer is online and streaming.
+- [Calculator](calculator/): basic functionalities of a calculator, with keyboard-enabled entry.
+- [Pomodoro Clock](pomodoro/): simple Pomodoro management clock, with custom configs for session and break time, pausing clock with keyboard buttons.
 
 ## Algorithms:
 ### Roman conversions ([here](http://www.rapidtables.com/convert/number/how-number-to-roman-numerals.htm)): 
