@@ -1,3 +1,4 @@
+
 $('document').ready(function() {
 	var model = {
 		session: 25*60,
@@ -10,20 +11,50 @@ $('document').ready(function() {
 			if (minutes < 0 && model[what] <= 60) {
 				return;
 			}
-			model[what] += minutes * 60;
+			if (what === 'session' || what === 'break') {
+				model[what] += minutes * 60;
+			} else {
+				console.log('Invalid adding minutes to', what);
+			}
 		},
 	};
 
 	var view = new (function () {
+		var progressElm = '#clock-progress div';
+		var timeElm = '#clock-time';
+
 		this.display = function (argument) {
 			console.log(argument);
 		};
 
 		this.renderClock = function (model) {
+			function twoDigits(x) {
+				return ("0" + x).slice(-2);
+			}
+
 			console.log('Session length:', model.session / 60);
 			console.log('Break length:', model.break / 60);
 			console.log(model.inSession ? 'In session' : 'In break');
 			console.log('Time:', model.current);
+
+			var length = model.inSession ? model.session : model.break;
+			var percentage = String(Math.round(model.current / length * 100));
+			var minuteTime = twoDigits(Math.floor(model.current / 60)) + ':' + twoDigits(model.current % 60);
+			$(progressElm)
+				.attr('aria-valuenow', percentage)
+				.addClass(model.inSession ? 'bg-primary' : 'bg-danger')
+				.css('width', percentage + '%');
+
+			$(timeElm).text(minuteTime);
+
+			if(model.inSession) {
+				$(progressElm).removeClass('bg-danger').addClass('bg-primary');
+				$(timeElm).removeClass('text-danger').addClass('text-primary');
+			} else {
+				$(progressElm).removeClass('bg-primary').addClass('bg-danger');
+				$(timeElm).removeClass('text-primary').addClass('text-danger');
+			}
+				
 		};
 	})();
 
@@ -77,14 +108,14 @@ $('document').ready(function() {
 		}
 
 		function tick () {
-			if (model.inSession && model.current === model.session - 1) {
+			if (model.inSession && model.current >= model.session - 1) {
 				model.inSession = false;
 				model.current = 0;
-			} else if (!model.inSession && model.current === model.break - 1) {
+			} else if (!model.inSession && model.current >= model.break - 1) {
 				model.inSession = true;
 				model.current = 0;
 			} else {
-				model.current += 1;
+				model.current += 100;
 			}
 
 			view.renderClock(model);
@@ -100,6 +131,7 @@ $('document').ready(function() {
 				clearInterval(ticklerID);
 				model.isTicking = false;
 				ticklerID = -1;
+				view.stopClock();
 			}
 		};
 

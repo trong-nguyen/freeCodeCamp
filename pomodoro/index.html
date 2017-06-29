@@ -7,48 +7,15 @@
   <link rel="stylesheet" type="text/css" href="styles.css" />
 </head>
 <body>
-<h1 class="display-4 text-center">Calculator</h1>
+<h1 class="display-4 text-center">Pomodoro Clock</h1>
 
 <div class="container mt-5 rounded mx-auto">
-  <div class="row pt-3 led">
-    <div class="col">
-      <p class="form-control-static display-4 text-right" id="input-field">0.</p> 
-    </div>
+<div class="clock-display">
+  <div class="text-center text-primary display-3" id="clock-time">00:00</div>
+  <div class="progress mx-auto" id="clock-progress">
+    <div class="progress-bar" style="height: 50px" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
   </div>
-  <div class="row led">
-    <div class="col">
-      <p class="form-control-static display-5 text-right" id="input-chain">0.</p> 
-    </div>
-  </div>
-  <div class="keyboard">
-    <div class="row">
-      <div class="col-9 text-center numeric-key py-3" id="ctrl-ac"> <a href="#" class="btn btn-danger btn-block" role="button">AC</a></div>
-      <div class="col-3 text-center numeric-key py-3" id="oper-div"> <a href="#" class="btn btn-warning btn-block" role="button">/</a></div>
-    </div>
-    <div class="row">
-      <div class="col-3 text-center numeric-key py-3" id="num-7"> <a href="#" class="btn btn-primary btn-block" role="button">7</a></div>
-      <div class="col-3 text-center numeric-key py-3" id="num-8"> <a href="#" class="btn btn-primary btn-block" role="button">8</a></div>
-      <div class="col-3 text-center numeric-key py-3" id="num-9"> <a href="#" class="btn btn-primary btn-block" role="button">9</a></div>
-      <div class="col-3 text-center numeric-key py-3" id="oper-mul"> <a href="#" class="btn btn-warning btn-block" role="button">x</a></div>
-    </div>
-    <div class="row">
-      <div class="col-3 text-center numeric-key py-3" id="num-4"> <a href="#" class="btn btn-primary btn-block" role="button">4</a></div>
-      <div class="col-3 text-center numeric-key py-3" id="num-5"> <a href="#" class="btn btn-primary btn-block" role="button">5</a></div>
-      <div class="col-3 text-center numeric-key py-3" id="num-6"> <a href="#" class="btn btn-primary btn-block" role="button">6</a></div>
-      <div class="col-3 text-center numeric-key py-3" id="oper-sub"> <a href="#" class="btn btn-warning btn-block" role="button">-</a></div>
-    </div>
-    <div class="row">
-      <div class="col-3 text-center numeric-key py-3" id="num-1"> <a href="#" class="btn btn-primary btn-block" role="button">1</a></div>
-      <div class="col-3 text-center numeric-key py-3" id="num-2"> <a href="#" class="btn btn-primary btn-block" role="button">2</a></div>
-      <div class="col-3 text-center numeric-key py-3" id="num-3"> <a href="#" class="btn btn-primary btn-block" role="button">3</a></div>
-      <div class="col-3 text-center numeric-key py-3" id="oper-add"> <a href="#" class="btn btn-warning btn-block" role="button"> +</a></div>
-    </div>
-    <div class="row">
-      <div class="col-6 text-center numeric-key py-3" id="num-0"> <a href="#" class="btn btn-primary btn-block" role="button">0</a></div>
-      <div class="col-3 text-center numeric-key py-3" id="num-point"> <a href="#" class="btn btn-primary btn-block" role="button">.</a></div>
-      <div class="col-3 text-center numeric-key py-3" id="ctrl-equal"> <a href="#" class="btn btn-success btn-block" role="button">=</a></div>
-    </div>
-  </div>
+</div>
 </div>
 
 <div class="text-center mt-5">
