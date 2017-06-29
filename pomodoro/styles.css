@@ -1,9 +1,24 @@
+.container {
+	border-style: solid;
+	border-color: #0275D8;
+	border-radius: 10px;
+	border-width: 1px;
+}
+
 body {
 	max-width: 480px;
 	margin-left: auto;
 	margin-right: auto;
 }
 
-.progress {
-	max-width: 50%;
+#clock-progress div {
+	height: 70px;
+}
+
+.clock-configs {
+	max-width: 80%;
+}
+
+.progress-container {
+	max-width: 80%;
 }

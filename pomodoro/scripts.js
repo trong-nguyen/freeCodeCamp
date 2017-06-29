@@ -1,4 +1,3 @@
-
 $('document').ready(function() {
 	var model = {
 		session: 25*60,
@@ -20,8 +19,9 @@ $('document').ready(function() {
 	};
 
 	var view = new (function () {
-		var progressElm = '#clock-progress div';
-		var timeElm = '#clock-time';
+		var progressElm = '#clock-progress div';		
+		var timeElm = '.clock-digit-container';
+		var buttonElm = '#clock-button';
 
 		this.display = function (argument) {
 			console.log(argument);
@@ -39,22 +39,33 @@ $('document').ready(function() {
 
 			var length = model.inSession ? model.session : model.break;
 			var percentage = String(Math.round(model.current / length * 100));
-			var minuteTime = twoDigits(Math.floor(model.current / 60)) + ':' + twoDigits(model.current % 60);
+			var minuteTime = twoDigits(Math.floor(model.current / 60)) + twoDigits(model.current % 60);
+
+			for (var i in minuteTime) {
+				$('#clock-digit-' + i).text(minuteTime[i]);
+			}
+
 			$(progressElm)
 				.attr('aria-valuenow', percentage)
-				.addClass(model.inSession ? 'bg-primary' : 'bg-danger')
 				.css('width', percentage + '%');
 
-			$(timeElm).text(minuteTime);
 
 			if(model.inSession) {
-				$(progressElm).removeClass('bg-danger').addClass('bg-primary');
+				$(progressElm).removeClass('bg-danger').addClass('bg-primary').text('Session');
 				$(timeElm).removeClass('text-danger').addClass('text-primary');
 			} else {
-				$(progressElm).removeClass('bg-primary').addClass('bg-danger');
+				$(progressElm).removeClass('bg-primary').addClass('bg-danger').text('Break');
 				$(timeElm).removeClass('text-primary').addClass('text-danger');
 			}
-				
+
+			if(model.isTicking) {
+				$(buttonElm).text('Pause');
+			} else {
+				$(buttonElm).text('Start');
+			}
+
+			$('#session-length').text(model.session / 60);
+			$('#break-length').text(model.break / 60);
 		};
 	})();
 
@@ -63,47 +74,37 @@ $('document').ready(function() {
 		var view = view;
 		var ticklerID = -1;
 
-		function alertIfTicking() {
-			if (model.isTicking) {
-				view.display('Pause the clock before adjustment!');
-				return true;
-			}
-			return false;
-		}
-
 		this.increaseSession = function () {
-			if (alertIfTicking()) {
-				return;
-			}
+			pause();
+			resetClock();
 			model.addMinutes('session', 1);
-			// view.displaySession(model.session / 60);
 			view.renderClock(model);
 		}
 
 		this.decreaseSession = function () {
-			if (alertIfTicking()) {
-				return;
-			}
+			pause();
+			resetClock();
 			model.addMinutes('session', -1);
-			// view.displaySession(model.session / 60);
 			view.renderClock(model);
 		}
 
 		this.increaseBreak = function () {
-			if (alertIfTicking()) {
-				return;
-			}
+			pause();
+			resetClock();
 			model.addMinutes('break', 1);
-			// view.displayBreak(model.break / 60);
 			view.renderClock(model);
 		}
 
 		this.decreaseBreak = function () {
-			if (alertIfTicking()) {
-				return;
-			}
+			pause();
+			resetClock();
 			model.addMinutes('break', -1);
-			// view.displayBreak(model.break / 60);
+			view.renderClock(model);
+		}
+
+		this.resetClock = function (argument) {
+			// api for resetting clock
+			resetClock();
 			view.renderClock(model);
 		}
 
@@ -115,29 +116,67 @@ $('document').ready(function() {
 				model.inSession = true;
 				model.current = 0;
 			} else {
-				model.current += 100;
+				model.current += 1;
 			}
 
 			view.renderClock(model);
 		}
 
-		this.resume = function () {
+		function resume() {
 			ticklerID = setInterval(tick, 1000);
 			model.isTicking = true;
-		};
+		}
 
-		this.pause = function () {
-			if (ticklerID != -1) {
+		function pause() {
+			if(ticklerID !== -1) {
 				clearInterval(ticklerID);
 				model.isTicking = false;
 				ticklerID = -1;
-				view.stopClock();
 			}
 		};
+
+		this.toggleRun = function (argument) {
+			if (!model.isTicking) {
+				resume();
+			} else {
+				pause();
+			}
+
+			view.renderClock(model);
+		};
+
+		function resetClock (argument) {
+			model.current = 0;
+		}
 
 	})(model, view);
 
 	(function init () {
-		controller.resume();
+		view.renderClock(model);
+
+		$('#clock-button').click(function (argument) {
+			controller.toggleRun();
+		});
+		$('#reset-button').click(function (argument) {
+			controller.resetClock();
+		});
+		$('#button-increase-session').click(function (argument) {
+			controller.increaseSession();
+		});
+		$('#button-decrease-session').click(function (argument) {
+			controller.decreaseSession();
+		});
+		$('#button-increase-break').click(function (argument) {
+			controller.increaseBreak();
+		});
+		$('#button-decrease-break').click(function (argument) {
+			controller.decreaseBreak();
+		});
+		$(document).keypress(function (e) {
+			// I love the convenience of enter button
+			if ([13, 32].indexOf(e.which) !== -1) {
+				controller.toggleRun();
+			}
+		});
 	})();
 });
