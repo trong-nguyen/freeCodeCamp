@@ -1,4 +1,4 @@
-var constants = {
+var CONSTANTS = {
 	UNOCCUPIED: null,
 };
 
@@ -12,23 +12,40 @@ var HumanPlayer = function (mark) {
 		var n = board[0].length;
 
 		var count = 0;
+		var move = null;
 		do {
 			var x = randint(m), y = randint(n);
-			if (board[x][y] === constants.UNOCCUPIED) {
-				return {
+			if (board[x][y] === CONSTANTS.UNOCCUPIED) {
+				move = {
 					x: x,
 					y: y,
 					mark: mark
 				};
+				break;
 			}
 			count += 1;
 		} while (count < m*n*10);
+
+		return new Promise(function (resolve, reject) {
+			if (move === null) {
+				reject('Invalid move');
+			} else {
+				resolve(move);
+			}
+		});
+	};
+
+	this.getMark = function (argument) {
+		return mark;
 	}
 };
 
+var ComputerPlayer = HumanPlayer;
+var CONTROLLER = null;
+
 function makePlayer(type, mark) {
 	// Check if already instantiated
-	if (!(type instanceof String)) {
+	if (typeof type !== 'string') {
 		return type;
 	}
 
@@ -42,7 +59,7 @@ function makePlayer(type, mark) {
 $('document').ready(function() {
 	function makeBoard(rows, cols) {
 		var board = new Array(rows);
-		var defaultValue = null;
+		var defaultValue = CONSTANTS.UNOCCUPIED;
 		for (var i=0; i<rows; i+=1) {
 			board[i] = new Array(cols).fill(defaultValue);
 		}
@@ -50,42 +67,42 @@ $('document').ready(function() {
 	}
 
 	var model = new (function () {
-		var rows = 3;
-		var cols = 3;
-		var cellsToWin = 3;
-		var board = null;
-		var currentPlayer = null;
-		var players = ['AI', 'Human'];
-		var gameStats = null;
-		var firstPlayer = null;
+		this.rows = 3;
+		this.cols = 3;
+		this.cellsToWin = 3;
+		this.board = null;
+		this.currentPlayer = null;
+		this.players = ['Human', 'AI'];
+		this.gameStats = null;
+		this.firstPlayer = null;
 
 		var self = this;
 
 		function setFirstPlayer(index) {
-			currentPlayer = players[index];
+			self.firstPlayer = self.players[index];
 		}
 
 		function resetStats() {
-			gameStats = {};
-			players.forEach(function(player){
-				gameStats[player] = 0;
+			self.gameStats = {};
+			self.players.forEach(function(player){
+				self.gameStats[player] = 0;
 			});
 		}
 
 		this.init = function() {
+			var players = self.players;
 			for (var i = 0; i < players.length; i++) {
-				players[i] = makePlayer(players[i], String(i));
+				players[i] = makePlayer(players[i], i);
 			}
-			players = players.map(function (type) {
-				return makePlayer(type);
-			});
 
 			self.resetMatch();
 		},
 
 		this.resetGame = function () {
-			board = makeBoard(model.rows, model.cols);
-			setFirstPlayer(randint(model.players.length));
+			self.board = makeBoard(self.rows, self.cols);
+			setFirstPlayer(randint(self.players.length));
+			self.currentPlayer = self.firstPlayer;
+
 		}
 
 		this.resetMatch = function () {
@@ -95,6 +112,56 @@ $('document').ready(function() {
 	})();
 
 	var view = new (function () {
+		var self = this;
+		this.display = function (what) {
+			console.log(what);
+		};
+
+		this.renderBoard = function (board, status) {
+			var m = board.length;
+			var n = board[0].length;
+
+			var asciiMap = {
+				0: 'x',
+				1: 'o'
+			};
+			asciiMap[CONSTANTS.UNOCCUPIED] = ' ';
+
+			var openning = board[0]
+							.map(function (x) {
+								return '==';
+							})
+							.join('');
+
+			var ascii = openning;
+			var mappedBoard = board.map(function (row) {
+				return row.map(function (player) {
+					return asciiMap[player] || String(x);
+				})
+			});
+			if (status && status.line) {
+				status.line.forEach(function (cell) {
+					var x = cell[0], y = cell[1];
+					mappedBoard[x][y] = mappedBoard[x][y].toUpperCase();
+				});
+			}
+
+			for (var i = 0; i < m; i += 1) {
+				ascii += '\n' + mappedBoard[i]
+					.map(function (x) {
+						return asciiMap[x] || String(x);
+					})
+					.join(' ');
+			}
+			ascii += '\n' + openning;
+			console.log(ascii);
+		};
+
+		this.renderGame = function (model, status) {
+			console.log('Player\'s', model.currentPlayer.getMark(), 'move:');
+			self.renderBoard(model.board, status);
+			console.log('\n');
+		}
 	})();
 
 	var controller = new (function (model, view) {
@@ -109,8 +176,8 @@ $('document').ready(function() {
 				var board = model.board;
 				var rootValue = board[xRoot][yRoot];
 
-				if (rootValue === constants.UNOCCUPIED) {
-					return null;
+				if (rootValue === CONSTANTS.UNOCCUPIED) {
+					return [];
 				}
 
 				// vectors in which we could sufficiently check for winning conditions
@@ -139,15 +206,16 @@ $('document').ready(function() {
 			}
 
 			//brute
-			for (var i = 0; i < model.rows; i+=1) {
+			for (var i = 0; i < model.rows; i += 1) {
 				for (var j = 0; j < model.cols; j += 1) {
 					var winningLines = checkLine(i, j, model.cellsToWin);
 					if (winningLines.length) {
 						var line = winningLines[0];
-						var player = line[0];
+						var cell = line[0];
+						var player = model.board[cell[0]][cell[1]];
 						return {
 							status: 'won',
-							player: player,
+							winner: player,
 							line: line,
 						}
 					}
@@ -156,11 +224,11 @@ $('document').ready(function() {
 
 			var occupiedSlots = 0;
 			model.board.forEach(function(row) {
-				row.forEach(cell) {
-					if (cell !== constants.UNOCCUPIED) {
+				row.forEach(function (cell) {
+					if (cell !== CONSTANTS.UNOCCUPIED) {
 						occupiedSlots += 1;
 					};
-				};
+				});
 			});
 
 			if (occupiedSlots === model.rows * model.cols) {
@@ -181,62 +249,97 @@ $('document').ready(function() {
 			})
 		}
 
-		function nextPlayer(currentPlayer) {
+		function getNextPlayer(currentPlayer) {
 			var players = model.players;
 			var n = players.length;
 			var i = players.indexOf(currentPlayer);
-			return players[(i+1) % n];
+
+			return players[(i + 1) % n];
 		}
 
 		this.startGame = function (argument) {
 			model.currentPlayer = model.firstPlayer;
 		};
 
-		this.gameOn = function (argument) {
+		function gameEnded () {
 			var result = checkGameStatus();
-			if (result.status === 'ended' || result.status === 'draw') {
-				view.display('Game ended', result);
+			var ended;
+			if (result.status === 'won' || result.status === 'draw') {
+				view.display('Game ended');
+				view.display(result);
+				ended = true;
+			} else {
+				ended = false;
+			}
+			if (result.status === 'won') {
+				result.line.forEach(function (cell) {
+					var x = cell[0], y = cell[1];
+					// model.board[x][y] = model.board[x][y].toUpperCase();
+					view.display(model.board[x][y]);
+				});
+			}
+			view.renderGame(model, result);
+			return ended;
+		}
+
+		this.gameOn = function () {
+			if (gameEnded()) {
 				return;
 			}
 
 			model.currentPlayer
 				.makeAMove(model.board)
 				.then(updateBoard)
-				.then(nextPlayer)
+				.then(function (argument) {
+					model.currentPlayer = getNextPlayer(model.currentPlayer);
+					self.gameOn();
+				})
 				.catch(function (error) {
 					console.log(error);
-				});
-				.then(self.gameOn)
-		}
+				})
+				;
+
+			// model.currentPlayer = nextPlayer;
+
+			// model.currentPlayer
+			// 	.makeAMove(model.board)
+			// 	.then(updateBoard)
+			// 	.then(getNextPlayer)
+			// 	.catch(function (error) {
+			// 		console.log(error);
+			// 	})
+			// 	.then(self.gameOn);
+
+			// view.renderGame(model);
+		};
+
+		this.takeTurn = function () {
+			gameNotEnded()
+				.then(function (argument) {
+					model.currentPlayer = getNextPlayer(model.currentPlayer);
+				})
+				.catch(function(error) {
+					console.log(error);
+				})
+				.then(model.currentPlayer.makeAMove)
+				.then(updateBoard)
+				.then(getNextPlayer)
+				;
+		};
 
 	})(model, view);
 
-	(function init () {
-		view.renderClock(model);
-
-		$('#clock-button').click(function (argument) {
-			controller.toggleRun();
-		});
-		$('#reset-button').click(function (argument) {
-			controller.resetClock();
-		});
-		$('#button-increase-session').click(function (argument) {
-			controller.increaseSession();
-		});
-		$('#button-decrease-session').click(function (argument) {
-			controller.decreaseSession();
-		});
-		$('#button-increase-break').click(function (argument) {
-			controller.increaseBreak();
-		});
-		$('#button-decrease-break').click(function (argument) {
-			controller.decreaseBreak();
-		});
-		$(document).keypress(function (e) {
-			// I love the convenience of enter button
-			if ([13, 32].indexOf(e.which) !== -1) {
-				controller.toggleRun();
-			}
-		});
+	// (function init () {
+	// 	controller.startGame();
+	// 	controller.gameOn();
+	// })();
+	(function test() {
+		controller.startGame();
+		console.log(model);
+		console.assert(model.rows === 3 && model.cols === 3);
+		console.assert([0, 1].indexOf(model.currentPlayer.getMark()) !== -1);
+		controller.gameOn(model.firstPlayer);
+		// controller.takeTurn();
+		CONTROLLER = controller;
 	})();
 });
