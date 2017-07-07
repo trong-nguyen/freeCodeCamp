@@ -2,6 +2,82 @@ var CONSTANTS = {
 	UNOCCUPIED: null,
 };
 
+function checkGameStatus(game) {
+	var board = game.board;
+	var cellsToWin = game.cellsToWin;
+	var rows = board.length;
+	var cols = board[0].length;
+
+	function checkLine(xRoot, yRoot, cellsToWin) {
+		var rootValue = board[xRoot][yRoot];
+
+		if (rootValue === CONSTANTS.UNOCCUPIED) {
+			return [];
+		}
+
+		// vectors in which we could sufficiently check for winning conditions
+		var vectors = [[0, 1], [1, 0], [1, 1], [1, -1]];
+		
+		var results = vectors.map(function (ij) {
+			var x = xRoot, y = yRoot;
+			var wonCells = [[x, y]];
+			for (var c = 1; c < cellsToWin; c += 1){
+				x += ij[0];
+				y += ij[1];
+				if (x < 0 || rows <= x
+					|| y < 0 || cols <= y
+					|| board[x][y] !== rootValue) {
+					return null;
+				} else{
+					wonCells.push([x, y])
+				}
+			}
+			return wonCells;
+		});
+
+		return results.filter(function (x) {
+			return x !== null;
+		})
+	}
+
+	//brute
+	for (var i = 0; i < rows; i += 1) {
+		for (var j = 0; j < cols; j += 1) {
+			var winningLines = checkLine(i, j, cellsToWin);
+			if (winningLines.length) {
+				var line = winningLines[0];
+				var cell = line[0];
+				var player = board[cell[0]][cell[1]];
+				return {
+					status: 'won',
+					winner: player,
+					line: line,
+				}
+			}
+		}
+	}
+
+	var occupiedSlots = 0;
+	board.forEach(function(row) {
+		row.forEach(function (cell) {
+			if (cell !== CONSTANTS.UNOCCUPIED) {
+				occupiedSlots += 1;
+			};
+		});
+	});
+
+	if (occupiedSlots === rows * cols) {
+		return {
+			status: 'draw'
+		}
+	}
+
+	return {
+		status: 'unsettled',
+	};
+}
+
+
 function randint(n) {
 	return Math.floor(Math.random() * n);
 }
@@ -40,7 +116,44 @@ var HumanPlayer = function (mark) {
 	}
 };
 
+function minmax (board, player) {
+	var score = {
+		'won': 10,
+		'lose': -10,
+		'draw': 0
+	};
+	var unoccupiedSlots = count();
+	if (unoccupiedSlots.length === 1) {
+		var slot = unoccupiedSlots[0];
+		var newBoard = fillSlot(board, slot, player);
+		var result = checkGameStatus(newBoard);
+		return [score[result.status], slot];
+	}
+
+	var possibilities = unoccupiedSlots.map(function (slot) {
+		var newBoard = fillSlot(board, slot, player);
+		var status = checkGameStatus(newBoard).status;
+		if (score.status) {
+			return [score.status, slot];
+		} else {
+			return minmax(newBoard, nextPlayer(player));
+		}
+	});
+
+	// a min function working on arrays
+	return possibilities.reduce(function (a, p) {
+		return a ? a[0] >= p[0] : p;
+	});
+}
+
+var Computer = function (mark) {
+	this.makeAMove = function (board) {
+
+	};
+};
+
 var ComputerPlayer = HumanPlayer;
+
 var CONTROLLER = null;
 
 function makePlayer(type, mark) {
@@ -67,12 +180,12 @@ $('document').ready(function() {
 	}
 
 	var model = new (function () {
-		this.rows = 3;
-		this.cols = 3;
-		this.cellsToWin = 3;
+		this.rows = 10;
+		this.cols = 10;
+		this.cellsToWin = 5;
 		this.board = null;
 		this.currentPlayer = null;
-		this.players = ['Human', 'AI'];
+		this.players = ['Human', 'AI', 'AI', 'AI'];
 		this.gameStats = null;
 		this.firstPlayer = null;
 
@@ -123,7 +236,9 @@ $('document').ready(function() {
 
 			var asciiMap = {
 				0: 'x',
-				1: 'o'
+				1: 'o',
+				2: 'v',
+				3: 'i'
 			};
 			asciiMap[CONSTANTS.UNOCCUPIED] = ' ';
 
@@ -136,7 +251,7 @@ $('document').ready(function() {
 			var ascii = openning;
 			var mappedBoard = board.map(function (row) {
 				return row.map(function (player) {
-					return asciiMap[player] || String(x);
+					return asciiMap[player] || String(player);
 				})
 			});
 			if (status && status.line) {
@@ -171,76 +286,7 @@ $('document').ready(function() {
 		model.init();
 		self = this;
 
-		function checkGameStatus() {
-			function checkLine(xRoot, yRoot, cellsToWin) {
-				var board = model.board;
-				var rootValue = board[xRoot][yRoot];
-
-				if (rootValue === CONSTANTS.UNOCCUPIED) {
-					return [];
-				}
-
-				// vectors in which we could sufficiently check for winning conditions
-				var vectors = [[0, 1], [1, 0], [1, 1], [1, -1]];
-				
-				var results = vectors.map(function (ij) {
-					var x = xRoot, y = yRoot;
-					var wonCells = [[x, y]];
-					for (var c = 1; c < cellsToWin; c += 1){
-						x += ij[0];
-						y += ij[1];
-						if (x < 0 || model.rows <= x
-							|| y < 0 || model.cols <= y
-							|| board[x][y] !== rootValue) {
-							return null;
-						} else{
-							wonCells.push([x, y])
-						}
-					}
-					return wonCells;
-				});
-
-				return results.filter(function (x) {
-					return x !== null;
-				})
-			}
-
-			//brute
-			for (var i = 0; i < model.rows; i += 1) {
-				for (var j = 0; j < model.cols; j += 1) {
-					var winningLines = checkLine(i, j, model.cellsToWin);
-					if (winningLines.length) {
-						var line = winningLines[0];
-						var cell = line[0];
-						var player = model.board[cell[0]][cell[1]];
-						return {
-							status: 'won',
-							winner: player,
-							line: line,
-						}
-					}
-				}
-			}
-
-			var occupiedSlots = 0;
-			model.board.forEach(function(row) {
-				row.forEach(function (cell) {
-					if (cell !== CONSTANTS.UNOCCUPIED) {
-						occupiedSlots += 1;
-					};
-				});
-			});
-
-			if (occupiedSlots === model.rows * model.cols) {
-				return {
-					status: 'draw'
-				}
-			}
-
-			return {
-				status: 'unsettled',
-			};
-		}
+		
 
 		function updateBoard(move) {
 			return new Promise(function(resolve, reject) {
@@ -262,7 +308,10 @@ $('document').ready(function() {
 		};
 
 		function gameEnded () {
-			var result = checkGameStatus();
+			var result = checkGameStatus({
+				board: model.board, 
+				cellsToWin: model.cellsToWin
+			});
 			var ended;
 			if (result.status === 'won' || result.status === 'draw') {
 				view.display('Game ended');
@@ -298,19 +347,6 @@ $('document').ready(function() {
 					console.log(error);
 				})
 				;
-
-			// model.currentPlayer = nextPlayer;
-
-			// model.currentPlayer
-			// 	.makeAMove(model.board)
-			// 	.then(updateBoard)
-			// 	.then(getNextPlayer)
-			// 	.catch(function (error) {
-			// 		console.log(error);
-			// 	})
-			// 	.then(self.gameOn);
-
-			// view.renderGame(model);
 		};
 
 		this.takeTurn = function () {
