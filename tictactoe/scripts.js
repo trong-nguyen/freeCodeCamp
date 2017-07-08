@@ -130,8 +130,8 @@ var TicTacToe = {
 		function scoreGame(game, player) {
 			const n = game.board.length;
 			var score = {
-				'won': 2*n,
-				'lost': -2*n,
+				'won': 2*n*n,
+				'lost': -2*n*n,
 				'draw': 0
 			};
 
@@ -223,7 +223,8 @@ var TicTacToe = {
 	},
 
 	calculatedMove: function (game) {
-		var depth = game.board.length;
+		var n = game.board.length;
+		var depth = n * n;
 		var tic = TicTacToe.minmax(game, depth, true);
 		var move = {
 			x: tic[1][0],
@@ -274,8 +275,9 @@ var ComputerPlayer = function (mark) {
 
 	this.makeAMove = function (game) {
 		game.player = _mark;
-		var move = TicTacToe.calculatedMove(game);
-
+		var movesLeft = TicTacToe.getUnoccupied(game.board).length;
+		var make = movesLeft < 12 ? TicTacToe.calculatedMove : TicTacToe.randomMove;
+		var move = make(game);
 		return new Promise(function (resolve, reject) {
 			if (move === null) {
 				reject('Invalid move');

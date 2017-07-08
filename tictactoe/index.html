@@ -7,45 +7,67 @@
   <link rel="stylesheet" type="text/css" href="styles.css" />
 </head>
 <body>
-<h1 class="display-4 text-center text-primary">Pomodoro Clock</h1>
+<h1 class="display-4 text-center text-primary">TicTacToe</h1>
+<h2 class="display-5 text-center">ft. You Can't Win</h2>
 
 <div class="container py-4 mt-5">
-  <div class="mx-auto">
   <div class="clock-configs lead mx-auto mb-3">
     <div class="row">
-      <div class="col-2 text-right"><a href="#" id="button-decrease-session"><i class="fa fa-minus-circle" aria-hidden="true"></i></a></div>
-      <div class="col-4 text-right">Session:</div>
-      <div class="col-2 text-left" id="session-length">25</div>
-      <div class="col-2 text-left px-0">mins</div>
-      <div class="col-2 text-left"><a href="#" id="button-increase-session"><i class="fa fa-plus-circle" aria-hidden="true"></i></a></div>
+      <div class="col-6 text-center text-success">Player 1</div>
+      <div class="col-6 text-center text-danger">Player 2</div>
     </div>
     <div class="row">
-      <div class="col-2 text-right"><a href="#" id="button-decrease-break"><i class="fa fa-minus-circle" aria-hidden="true"></i></a></div>
-      <div class="col-4 text-right">Break:</div>
-      <div class="col-2 text-left" id="break-length">5</div>
-      <div class="col-2 text-left px-0">mins</div>
-      <div class="col-2 text-left"><a href="#" id="button-increase-break"><i class="fa fa-plus-circle" aria-hidden="true"></i></a></div>
+      <div class="col-6 display-4 text-center text-success">0</div>
+      <div class="col-6 display-4 text-center text-danger">0</div>
     </div>
   </div>
   <div class="text-center">
-    <a href="#" id="clock-button" class="btn btn-primary" role="button" aria-disabled="true">Start</a>
     <a href="#" id="reset-button" class="btn btn-outline-primary" role="button" aria-disabled="true">Reset</a>
   </div>
-  <div class="clock-display">
-    <div class="row clock-digit-container display-3 text-primary mx-auto">
-      <div class="col-3 text-right clock-digit" id="clock-digit-0">0</div>
-      <div class="col-2 text-center clock-digit" id="clock-digit-1">0</div>
-      <div class="col text-center">:</div>
-      <div class="col-2 text-center clock-digit" id="clock-digit-2">0</div>
-      <div class="col-3 text-left clock-digit" id="clock-digit-3">0</div>
+  <div class="board text-center mt-4">
+    <div class="row">
+      <div class="col-4 cell" id="00"><i class="fa fa-times text-success"></i></div>
+      <div class="col-4 cell" id="01"><i class="fa fa-circle-o text-danger"></i></div>
+      <div class="col-4 cell" id="02"><i class="fa fa-times text-success"></i></div>
     </div>
-    <div class="progress-container mx-auto">
-      <div class="progress" id="clock-progress">
-        <div class="progress-bar display-4" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-      </div>
+    <div class="row">
+      <div class="col-4 cell" id="10"><i class="fa fa-circle-o text-danger"></i></div>
+      <div class="col-4 cell" id="11"><i class="fa fa-times text-success"></i></div>
+      <div class="col-4 cell" id="12"><i class="fa fa-circle-o text-danger"></i></div>
+    </div>
+    <div class="row">
+      <div class="col-4 cell" id="20"><i class="fa fa-circle-o text-danger"></i></div>
+      <div class="col-4 cell" id="21"><i class="fa fa-times text-success"></i></div>
+      <div class="col-4 cell" id="22"><i class="fa fa-times text-success"></i></div>
     </div>
   </div>
-  </div>
+
+  <table class="board text-center mt-4 mx-auto">
+    <tr>
+      <td class="display-2 square" id="00">
+        <div class="content">
+          <div class="subtable">
+              <div class="subtable-cell">
+                <i class="fa fa-times text-success"></i>
+              </div>
+          </div>
+        </div>
+      </td>
+      <td class="cell" id="01"><i class="fa fa-circle-o text-danger content"></i></td>
+      <td class="cell" id="02"><i class="fa fa-times text-success content"></i></td>
+    </tr>
+    <tr>
+      <td class="cell" id="10"><i class="fa fa-circle-o text-danger content"></i></td>
+      <td class="cell" id="11"><i class="fa fa-times text-success content"></i></td>
+      <td class="cell" id="12"><i class="fa fa-circle-o text-danger content"></i></td>
+    </tr>
+    <tr>
+      <td class="cell" id="20"><i class="fa fa-circle-o text-danger content"></i></td>
+      <td class="cell" id="21"><i class="fa fa-times text-success content"></i></td>
+      <td class="cell" id="22"><i class="fa fa-times text-success content"></i></td>
+    </tr>
+  </table>
+
 </div>
 
 <div class="text-center mt-5">
