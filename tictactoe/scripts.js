@@ -2,88 +2,206 @@ var CONSTANTS = {
 	UNOCCUPIED: null,
 };
 
-function checkGameStatus(game) {
-	var board = game.board;
-	var cellsToWin = game.cellsToWin;
-	var rows = board.length;
-	var cols = board[0].length;
+var TicTacToe = {
+	archive: {},
 
-	function checkLine(xRoot, yRoot, cellsToWin) {
-		var rootValue = board[xRoot][yRoot];
+	codeBoard: function (board, player) {
+		var code = 'p' + String(player) + '-';
+		board.forEach(function (rows) {
+			rows.forEach(function (cell) {
+				code += (cell === CONSTANTS.UNOCCUPIED ? '_' : String(cell));
+			})
+		});
+		return code;
+	},
 
-		if (rootValue === CONSTANTS.UNOCCUPIED) {
-			return [];
+	codeMove: function (moves) {
+		var code = '';
+		return moves.map(function (move) {
+			return 'x' + move[1][0] + ':' + 'y' + move[1][1] + ':' + String(move[0]);
+		}).join(' | ');
+	},
+
+	checkGameStatus: function(game) {
+		var board = game.board;
+		var cellsToWin = game.cellsToWin;
+		var rows = board.length;
+		var cols = board[0].length;
+
+		function checkLine(xRoot, yRoot, cellsToWin) {
+			var rootValue = board[xRoot][yRoot];
+
+			if (rootValue === CONSTANTS.UNOCCUPIED) {
+				return [];
+			}
+
+			// vectors in which we could sufficiently check for winning conditions
+			var vectors = [[0, 1], [1, 0], [1, 1], [1, -1]];
+			
+			var results = vectors.map(function (ij) {
+				var x = xRoot, y = yRoot;
+				var wonCells = [[x, y]];
+				for (var c = 1; c < cellsToWin; c += 1){
+					x += ij[0];
+					y += ij[1];
+					if (x < 0 || rows <= x
+						|| y < 0 || cols <= y
+						|| board[x][y] !== rootValue) {
+						return null;
+					} else{
+						wonCells.push([x, y])
+					}
+				}
+				return wonCells;
+			});
+
+			return results.filter(function (x) {
+				return x !== null;
+			})
 		}
 
-		// vectors in which we could sufficiently check for winning conditions
-		var vectors = [[0, 1], [1, 0], [1, 1], [1, -1]];
-		
-		var results = vectors.map(function (ij) {
-			var x = xRoot, y = yRoot;
-			var wonCells = [[x, y]];
-			for (var c = 1; c < cellsToWin; c += 1){
-				x += ij[0];
-				y += ij[1];
-				if (x < 0 || rows <= x
-					|| y < 0 || cols <= y
-					|| board[x][y] !== rootValue) {
-					return null;
-				} else{
-					wonCells.push([x, y])
+		//brute
+		for (var i = 0; i < rows; i += 1) {
+			for (var j = 0; j < cols; j += 1) {
+				var winningLines = checkLine(i, j, cellsToWin);
+				if (winningLines.length) {
+					var line = winningLines[0];
+					var cell = line[0];
+					var player = board[cell[0]][cell[1]];
+					return {
+						status: 'won',
+						winner: player,
+						line: line,
+					}
 				}
 			}
-			return wonCells;
+		}
+
+		var occupiedSlots = 0;
+		board.forEach(function(row) {
+			row.forEach(function (cell) {
+				if (cell !== CONSTANTS.UNOCCUPIED) {
+					occupiedSlots += 1;
+				};
+			});
 		});
 
-		return results.filter(function (x) {
-			return x !== null;
-		})
-	}
+		// console.log('Board, unoccupiedSlots', board, occupiedSlots);
+		return occupiedSlots === rows * cols ? {status: 'draw'} : {status: 'unsettled'} ;
+	},
 
-	//brute
-	for (var i = 0; i < rows; i += 1) {
-		for (var j = 0; j < cols; j += 1) {
-			var winningLines = checkLine(i, j, cellsToWin);
-			if (winningLines.length) {
-				var line = winningLines[0];
-				var cell = line[0];
-				var player = board[cell[0]][cell[1]];
-				return {
-					status: 'won',
-					winner: player,
-					line: line,
+	getUnoccupied: function (board) {
+		var unoccupied = [];
+		for (var i in board) {
+			for (var j in board[i]) {
+				if (board[i][j] === CONSTANTS.UNOCCUPIED) {
+					unoccupied.push([i, j]);
 				}
 			}
 		}
-	}
+		return unoccupied;
+	},
 
-	var occupiedSlots = 0;
-	board.forEach(function(row) {
-		row.forEach(function (cell) {
-			if (cell !== CONSTANTS.UNOCCUPIED) {
-				occupiedSlots += 1;
+	minmax: function (game, depth, printPlays) {
+		// The depth gives bias towards quicker winning moves and slower losing ones.
+		var archive = TicTacToe.archive;
+		var boardCode = TicTacToe.codeBoard(game.board, game.player);
+		if (true && archive[boardCode]) {
+			if (printPlays) {
+				console.log('Best move', TicTacToe.codeMove([archive[boardCode]]));
+			}
+			return archive[boardCode];
+		}
+
+
+		function copyFillSlot(board, slot, player) {
+			// clone the board, fill in the slot and return
+			function clone (board) {
+				return board.map(function (rows) {
+					return rows.slice(0, rows.length);
+				});
+			}
+			var nb = clone(board);
+			nb[slot[0]][slot[1]] = player;
+
+			return nb;
+		}
+
+		function scoreGame(game, player) {
+			const n = game.board.length;
+			var score = {
+				'won': 2*n,
+				'lost': -2*n,
+				'draw': 0
 			};
-		});
-	});
 
-	if (occupiedSlots === rows * cols) {
-		return {
-			status: 'draw'
+			var result = TicTacToe.checkGameStatus(game);
+			var status = result.status;
+
+			if (status === 'draw') {
+				return score.draw;
+			} else if (status === 'won') {
+				return [score.lost, score.won][Number(result.winner === player)];
+			} else {
+				return null;
+			}
 		}
-	}
-
-	return {
-		status: 'unsettled',
-	};
-}
 
 
-function randint(n) {
-	return Math.floor(Math.random() * n);
-}
+		var board = game.board;
+		var player = game.player;
+		var nextPlayer = game.next(player);
+		var newGame = {};
+		for (var k in game) {
+			newGame[k] = game[k];
+		}
+		newGame.player = nextPlayer;
 
-var HumanPlayer = function (mark) {
-	this.makeAMove = function (board) {
+
+		var unoccupiedSlots = TicTacToe.getUnoccupied(board);
+		// console.log('board', board);
+		// console.log('unoccupiedSlots', unoccupiedSlots);
+
+		var playedOut = unoccupiedSlots.map(function (slot) {
+			var newBoard = copyFillSlot(board, slot, player);
+			newGame.board = newBoard;
+			var score = scoreGame(newGame, player);
+
+			// console.log('allBoard, currentPlayer', player, ', nextPlayer', nextPlayer, TicTacToe.codeBoard(newBoard, nextPlayer));
+			if (score != null) {
+				// Base case termination
+				return [score+depth, slot];
+			} else {
+				var tic = TicTacToe.minmax(newGame, depth-1);
+				return [-tic[0], slot];// their wins are my loss
+			}
+		});
+
+
+		// a min function working on arrays
+		var bestMove = playedOut.reduce(function (a, p) {
+			return a[0] >= p[0] ? a : p;
+		});
+
+		if (false || printPlays) {
+			console.log(
+				'Played out',
+				boardCode,
+				TicTacToe.codeMove(playedOut),
+				bestMove,
+				game,
+				game.next(player),
+			);
+		}
+
+		archive[boardCode] = bestMove;
+
+		return bestMove;
+	},
+
+	randomMove: function (game) {
+		var board = game.board;
+
 		var m = board.length;
 		var n = board[0].length;
 
@@ -94,65 +212,82 @@ var HumanPlayer = function (mark) {
 			if (board[x][y] === CONSTANTS.UNOCCUPIED) {
 				move = {
 					x: x,
-					y: y,
-					mark: mark
+					y: y
 				};
 				break;
 			}
 			count += 1;
 		} while (count < m*n*10);
 
+		return move;
+	},
+
+	calculatedMove: function (game) {
+		var depth = game.board.length;
+		var tic = TicTacToe.minmax(game, depth, true);
+		var move = {
+			x: tic[1][0],
+			y: tic[1][1]
+		};
+
+		return move;
+	}
+};
+
+
+
+
+function randint(n) {
+	return Math.floor(Math.random() * n);
+}
+
+var HumanPlayer = function (mark) {
+	var self = this;
+	var _mark = mark;
+
+	this.getMark = function (argument) {
+		return _mark;
+	}
+
+	this.makeAMove = function (game) {
+		game.player = _mark;
+		var move = TicTacToe.randomMove(game);
+
 		return new Promise(function (resolve, reject) {
 			if (move === null) {
 				reject('Invalid move');
 			} else {
+				move.mark = _mark;
 				resolve(move);
 			}
 		});
 	};
+};
 
+
+
+var ComputerPlayer = function (mark) {
+	var _mark = mark;
 	this.getMark = function (argument) {
-		return mark;
-	}
-};
-
-function minmax (board, player) {
-	var score = {
-		'won': 10,
-		'lose': -10,
-		'draw': 0
-	};
-	var unoccupiedSlots = count();
-	if (unoccupiedSlots.length === 1) {
-		var slot = unoccupiedSlots[0];
-		var newBoard = fillSlot(board, slot, player);
-		var result = checkGameStatus(newBoard);
-		return [score[result.status], slot];
+		return _mark;
 	}
 
-	var possibilities = unoccupiedSlots.map(function (slot) {
-		var newBoard = fillSlot(board, slot, player);
-		var status = checkGameStatus(newBoard).status;
-		if (score.status) {
-			return [score.status, slot];
-		} else {
-			return minmax(newBoard, nextPlayer(player));
-		}
-	});
+	this.makeAMove = function (game) {
+		game.player = _mark;
+		var move = TicTacToe.calculatedMove(game);
 
-	// a min function working on arrays
-	return possibilities.reduce(function (a, p) {
-		return a ? a[0] >= p[0] : p;
-	});
-}
-
-var Computer = function (mark) {
-	this.makeAMove = function (board) {
-
+		return new Promise(function (resolve, reject) {
+			if (move === null) {
+				reject('Invalid move');
+			} else {
+				move.mark = _mark;
+				resolve(move);
+			}
+		});
 	};
 };
 
-var ComputerPlayer = HumanPlayer;
+// var ComputerPlayer = HumanPlayer;
 
 var CONTROLLER = null;
 
@@ -180,12 +315,12 @@ $('document').ready(function() {
 	}
 
 	var model = new (function () {
-		this.rows = 10;
-		this.cols = 10;
-		this.cellsToWin = 5;
+		this.rows = 3;
+		this.cols = 3;
+		this.cellsToWin = 3;
 		this.board = null;
 		this.currentPlayer = null;
-		this.players = ['Human', 'AI', 'AI', 'AI'];
+		this.players = ['Human', 'AI'];
 		this.gameStats = null;
 		this.firstPlayer = null;
 
@@ -214,6 +349,7 @@ $('document').ready(function() {
 		this.resetGame = function () {
 			self.board = makeBoard(self.rows, self.cols);
 			setFirstPlayer(randint(self.players.length));
+			setFirstPlayer(0);
 			self.currentPlayer = self.firstPlayer;
 
 		}
@@ -284,7 +420,7 @@ $('document').ready(function() {
 		var view = view;
 
 		model.init();
-		self = this;
+		var self = this;
 
 		
 
@@ -307,10 +443,15 @@ $('document').ready(function() {
 			model.currentPlayer = model.firstPlayer;
 		};
 
+		function nexPlayerMark (currentPlayerMark) {
+			return (currentPlayerMark+1) % model.players.length;
+		}
+
 		function gameEnded () {
-			var result = checkGameStatus({
+			var result = TicTacToe.checkGameStatus({
 				board: model.board, 
-				cellsToWin: model.cellsToWin
+				cellsToWin: model.cellsToWin,
+				next: nexPlayerMark
 			});
 			var ended;
 			if (result.status === 'won' || result.status === 'draw') {
@@ -332,14 +473,17 @@ $('document').ready(function() {
 		}
 
 		this.gameOn = function () {
-			if (gameEnded()) {
-				return;
-			}
-
 			model.currentPlayer
-				.makeAMove(model.board)
+				.makeAMove({
+					board: model.board, 
+					cellsToWin: model.cellsToWin,
+					next: nexPlayerMark
+				})
 				.then(updateBoard)
 				.then(function (argument) {
+					if (gameEnded()) {
+						return;
+					}
 					model.currentPlayer = getNextPlayer(model.currentPlayer);
 					self.gameOn();
 				})
