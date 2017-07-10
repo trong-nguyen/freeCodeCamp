@@ -180,7 +180,12 @@ var TicTacToe = {
 
 		// a min function working on arrays
 		var bestMove = playedOut.reduce(function (a, p) {
-			return a[0] >= p[0] ? a : p;
+			if (a[0] === p[0]) {
+				// adding some random factor for equivalent choices
+				return [a, p][randint(2)];
+			}
+
+			return a[0] > p[0] ? a : p;
 		});
 
 		if (false || printPlays) {
@@ -249,6 +254,26 @@ var HumanPlayer = function (mark) {
 	this.getMark = function (argument) {
 		return _mark;
 	}
+	
+	this.makeAMove = function (game) {
+		return new Promise(function (resolve, reject) {
+			game.hotline.player = {
+				mark: _mark,
+				resolve: function (move) {
+					resolve(move);
+				},
+			}	
+		});
+	};
+};
+
+var RandomPlayer = function (mark) {
+	var self = this;
+	var _mark = mark;
+
+	this.getMark = function (argument) {
+		return _mark;
+	}
 
 	this.makeAMove = function (game) {
 		game.player = _mark;
@@ -264,8 +289,6 @@ var HumanPlayer = function (mark) {
 		});
 	};
 };
-
-
 
 var ComputerPlayer = function (mark) {
 	var _mark = mark;
@@ -299,10 +322,12 @@ function makePlayer(type, mark) {
 		return type;
 	}
 
-	if (type === 'Human') {
-		return new HumanPlayer(mark);
+	if (type === 'Random') {
+		return new RandomPlayer(mark);
 	} else if (type === 'AI') {
 		return new ComputerPlayer(mark);
+	} else if (type === 'Human') {
+		return new HumanPlayer(mark);
 	}
 }
 
@@ -317,14 +342,15 @@ $('document').ready(function() {
 	}
 
 	var model = new (function () {
-		this.rows = 3;
-		this.cols = 3;
-		this.cellsToWin = 3;
+		this.rows = 20;
+		this.cols = 20;
+		this.cellsToWin = 5;
 		this.board = null;
 		this.currentPlayer = null;
 		this.players = ['Human', 'AI'];
 		this.gameStats = null;
 		this.firstPlayer = null;
+		var humanPlaying = false;
 
 		var self = this;
 
@@ -342,11 +368,17 @@ $('document').ready(function() {
 		this.init = function() {
 			var players = self.players;
 			for (var i = 0; i < players.length; i++) {
+				if (players[i] === 'Human') {
+					humanPlaying = true;
+				}
 				players[i] = makePlayer(players[i], i);
 			}
-
 			self.resetMatch();
-		},
+		};
+
+		this.humanIsPlaying = function () {
+			return humanPlaying;
+		}
 
 		this.resetGame = function () {
 			self.board = makeBoard(self.rows, self.cols);
@@ -354,21 +386,145 @@ $('document').ready(function() {
 			setFirstPlayer(0);
 			self.currentPlayer = self.firstPlayer;
 
-		}
+		};
 
 		this.resetMatch = function () {
 			self.resetGame();
 			resetStats();
-		}
+		};
 	})();
 
 	var view = new (function () {
+		var boardElm = $('#board');
+		var cellTemlate = boardElm.find('tr').first().clone();
+
+		var renderMap = {
+			0: {
+				icon: 'fa-times',
+				text: 'text-success',
+			},
+			1: {
+				icon: 'fa-circle-o',
+				text: 'text-danger',
+			}
+		};
+
 		var self = this;
 		this.display = function (what) {
 			console.log(what);
 		};
 
-		this.renderBoard = function (board, status) {
+		function encodeCellId(x, y) {
+			return  String(x) + '-' + String(y);
+		}
+
+		this.renderBoard = function (board, status) {	
+			var m = board.length;
+			var n = board[0].length;
+
+			// CSS
+			// Change the columns layout
+			var colSize = String(100. / n) + '%';
+			var markSize = 12. * 3 / n; // 12vw is nice for a board of m columns
+			var tdStyle = 'style="width: ' + String(colSize) + ';"';
+			var markStyle = 'style="font-size: ' + String(markSize) + 'vmin;"';
+
+
+			console.log('Processing inner');
+			// THE FOLLOWING LINES ARE HIGLY COUPLED WITH encodeCellId
+			// MUST BE CHANGED ON CHANGIN that as well
+			var templateString = cellTemlate.html()
+				.replace('id=""', 'id="" ' + tdStyle)
+				.replace('class="subtable-cell hidden"', 'class="subtable-cell hidden" ' + markStyle);
+			console.log(templateString);
+			var row = Array(n);
+			var i = row.length;
+			while (i--) {
+				row[i] = templateString.replace('id=""', 'id="' + String(i) + '"' + tdStyle);
+			}
+			var templateRow = '<tr>' + row.join('\n') + '</tr>';
+			var table = Array(m);
+			var i = table.length;
+			while (i--) {
+				table[i] = templateRow.replace(/id="/g, 'id="' + String(i) + '-');
+			}
+			// END OF COUPLED LINES
+			boardElm.empty();
+			boardElm.html(table.join('\n'))
+			console.log('done processing inner');
+
+			// SLOWER IMPLEMENTATION, LEANER BUT SLOW DUE TO JQUERY OVERHEAD
+			// var cells = board.map(function(row) {
+			// 	return row.map(function (cell) {
+			// 		var template = cellTemlate.clone();					
+			// 		return template;
+			// 	});
+			// });
+
+			// HERE
+			// boardElm.empty();
+			// $.each(cells, function (i, row) {
+			// 	var tr = $('<tr></tr>');
+			// 	$.each(row, function (j, cell) {
+			// 		cell.attr('id', encodeCellId(i, j));
+			// 		tr.append(cell);
+			// 	});
+			// 	boardElm.append(tr);
+			// });
+
+			// // CSS
+			// // Change the columns layout
+			// var colSize = String(100. / n) + '%';
+			// var markSize = 12. * 3 / n; // 12vw is nice for a board of m columns
+			// $('#board td').width(colSize);
+			// console.log('done setting board width');
+			// $('.subtable-cell').css('font-size', String(markSize) + 'vmin');
+			// console.log('done setting cell marks');
+		};
+
+		this.bindMoves = function (board, controllerHotline) {
+			$.each(board, function (i, row) {
+				$.each(row, function (j, cell) {
+					var cellId = encodeCellId(i, j);
+					// console.log('binding', cellId);
+					$('#' + cellId).click(function (argument) {
+						if (controllerHotline.authorisedPlayer !== undefined &&
+							controllerHotline.authorisedPlayer === controllerHotline.player.mark) {
+							controllerHotline.player.resolve({
+								x: i,
+								y: j,
+								mark: controllerHotline.player.mark
+							});
+							self.disableMoveInput(i, j); // deactivate after click
+						}
+						console.log('You clicked', cellId);
+					});
+				});
+			});
+		};
+
+		this.disableMoveInput = function (x, y) {
+			var cell = $('#' + encodeCellId(x, y))
+			if (cell.length) {
+				cell.off('click');
+			} else {
+				console.log('Failed to disable input on cell', x, y);
+			}
+		};
+
+		this.renderMove = function (move) {
+			var styles = renderMap[move.mark];
+			if (!styles) {
+				throw 'Invalid move' + String(styles);
+			}
+			var cellId = encodeCellId(move.x, move.y);
+			$('#' + cellId)
+				.find('.subtable-cell i')
+				.addClass([styles.icon, styles.text].join(' '))
+				.toggleClass('hidden');
+		};
+
+		this.renderBoardAscii = function (board, status) {
 			var m = board.length;
 			var n = board[0].length;
 
@@ -412,23 +568,44 @@ $('document').ready(function() {
 
 		this.renderGame = function (model, status) {
 			console.log('Player\'s', model.currentPlayer.getMark(), 'move:');
-			self.renderBoard(model.board, status);
+			self.renderBoardAscii(model.board, status);
+			// self.renderBoard(model.board, status);
 			console.log('\n');
-		}
+		};
 	})();
 
 	var controller = new (function (model, view) {
 		var model = model;
 		var view = view;
+		var waitTimeBetweenMoves = 500;
+		var inputHotline = {
+			on: function () {
+					console.log('hotline on');
+					if (model.currentPlayer instanceof HumanPlayer) {
+						inputHotline.authorisedPlayer = model.currentPlayer.getMark();
+					}
+				},
+
+			off: function () {
+					console.log('hotline off');
+					for (var k in inputHotline) {
+						if (['on', 'off'].indexOf(k) === -1) {
+							delete inputHotline[k];
+						}
+					}
+				},
+		};
 
 		model.init();
 		var self = this;
 
-		
-
 		function updateBoard(move) {
+			view.renderMove(move);
 			return new Promise(function(resolve, reject) {
 				model.board[move.x][move.y] = move.mark;
+				if(model.humanIsPlaying()) {
+					view.disableMoveInput(move.x, move.y);
+				}
 				resolve(model.currentPlayer);
 			})
 		}
@@ -474,25 +651,58 @@ $('document').ready(function() {
 			return ended;
 		}
 
+		function waitForMove () {
+			// wrapper around users' move
+			// to enable input channel
+
+			var playerIsHuman = model.currentPlayer instanceof HumanPlayer;
+
+			if (playerIsHuman) {
+				inputHotline.on();
+			}
+
+			var moved = model.currentPlayer.makeAMove({
+				board: model.board, 
+				cellsToWin: model.cellsToWin,
+				next: nexPlayerMark,
+				hotline: inputHotline
+			});
+
+			return new Promise(function (resolve, reject) {
+				moved.then(function (move) {
+					if (playerIsHuman) {
+						inputHotline.off();
+					}
+					resolve(move);
+				});
+			});
+		}
+
 		this.gameOn = function () {
-			model.currentPlayer
-				.makeAMove({
-					board: model.board, 
-					cellsToWin: model.cellsToWin,
-					next: nexPlayerMark
-				})
+
+			waitForMove()
 				.then(updateBoard)
 				.then(function (argument) {
 					if (gameEnded()) {
 						return;
 					}
 					model.currentPlayer = getNextPlayer(model.currentPlayer);
-					self.gameOn();
+					setTimeout(self.gameOn, waitTimeBetweenMoves);
+					// self.gameOn();
 				})
 				.catch(function (error) {
 					console.log(error);
 				})
 				;
+		};
+
+		this.initView = function () {
+			view.renderBoard(model.board);
+
+			// only allow inputs when a human is playing
+			if (model.humanIsPlaying()) {
+				view.bindMoves(model.board, inputHotline);
+			}
 		};
 
 		this.takeTurn = function () {
@@ -517,6 +727,7 @@ $('document').ready(function() {
 	// })();
 	(function test() {
 		controller.startGame();
+		controller.initView();
 		console.log(model);
 		console.assert(model.rows === 3 && model.cols === 3);
 		console.assert([0, 1].indexOf(model.currentPlayer.getMark()) !== -1);

@@ -11,23 +11,10 @@ body {
 	margin-right: auto;
 }
 
-#clock-progress div {
-	height: 70px;
-}
-
-/* .board {
-	border-style: solid;
-	border-color: #0275D8;
-	border-radius: 1px;
-	border-width: 1px;
-}
- */
-
-.cell {
+.square {
 	border-style: solid;
 	border-radius: 1px;
 	border-width: 1px;
-    font-size: 14vw;
 }
 
 table {
@@ -35,7 +22,8 @@ table {
 }
 
 td {
-  width: 33.33%;
+	/* dynamically change later*/
+  /* width: 33.33%; */
   position: relative;
 }
 
@@ -65,6 +53,8 @@ td .content {
 	border-style: solid;
 	border-radius: 1px;
 	border-width: 1px;
-    font-size: 16px; 
-    font-size: 12vw;
+	
+	/* dynamically change later*/
+    /* font-size: 16px; 
+    font-size: 12vw; */
 }

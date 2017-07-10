@@ -17,54 +17,29 @@
       <div class="col-6 text-center text-danger">Player 2</div>
     </div>
     <div class="row">
-      <div class="col-6 display-4 text-center text-success">0</div>
-      <div class="col-6 display-4 text-center text-danger">0</div>
+      <div class="col-6 display-4 text-center text-success" id="stat-p0">0</div>
+      <div class="col-6 display-4 text-center text-danger" id="stat-p1">0</div>
     </div>
   </div>
   <div class="text-center">
     <a href="#" id="reset-button" class="btn btn-outline-primary" role="button" aria-disabled="true">Reset</a>
   </div>
-  <div class="board text-center mt-4">
-    <div class="row">
-      <div class="col-4 cell" id="00"><i class="fa fa-times text-success"></i></div>
-      <div class="col-4 cell" id="01"><i class="fa fa-circle-o text-danger"></i></div>
-      <div class="col-4 cell" id="02"><i class="fa fa-times text-success"></i></div>
-    </div>
-    <div class="row">
-      <div class="col-4 cell" id="10"><i class="fa fa-circle-o text-danger"></i></div>
-      <div class="col-4 cell" id="11"><i class="fa fa-times text-success"></i></div>
-      <div class="col-4 cell" id="12"><i class="fa fa-circle-o text-danger"></i></div>
-    </div>
-    <div class="row">
-      <div class="col-4 cell" id="20"><i class="fa fa-circle-o text-danger"></i></div>
-      <div class="col-4 cell" id="21"><i class="fa fa-times text-success"></i></div>
-      <div class="col-4 cell" id="22"><i class="fa fa-times text-success"></i></div>
-    </div>
+
+  <div id="game-status" class="lead text-center my-3">
+    <p>Game starting, first player</p>
   </div>
 
-  <table class="board text-center mt-4 mx-auto">
+  <table class="text-center mt-4 mx-auto" id="board">
     <tr>
-      <td class="display-2 square" id="00">
+      <td class="square" id="">
         <div class="content">
           <div class="subtable">
-              <div class="subtable-cell">
-                <i class="fa fa-times text-success"></i>
+              <div class="subtable-cell hidden">
+                <i class="fa"></i>
               </div>
           </div>
         </div>
       </td>
-      <td class="cell" id="01"><i class="fa fa-circle-o text-danger content"></i></td>
-      <td class="cell" id="02"><i class="fa fa-times text-success content"></i></td>
-    </tr>
-    <tr>
-      <td class="cell" id="10"><i class="fa fa-circle-o text-danger content"></i></td>
-      <td class="cell" id="11"><i class="fa fa-times text-success content"></i></td>
-      <td class="cell" id="12"><i class="fa fa-circle-o text-danger content"></i></td>
-    </tr>
-    <tr>
-      <td class="cell" id="20"><i class="fa fa-circle-o text-danger content"></i></td>
-      <td class="cell" id="21"><i class="fa fa-times text-success content"></i></td>
-      <td class="cell" id="22"><i class="fa fa-times text-success content"></i></td>
     </tr>
   </table>
 
