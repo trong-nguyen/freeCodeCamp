@@ -9,13 +9,25 @@
 
 ## Tictactoe - More than a game
 
-- [Dynamic viewport sized typography](https://css-tricks.com/viewport-sized-typography/): scaling font size according to meta defined viewport. Units of `vw` instead of `%` or `px` 
+- [Dynamic viewport sized typography](https://css-tricks.com/viewport-sized-typography/): scaling font size according to meta defined viewport. Units of `vw` instead of `%` or `px`. ([additional](https://stackoverflow.com/questions/16056591/font-scaling-based-on-width-of-container/19814948#19814948))
+- [Hide elements with hidden class](https://stackoverflow.com/questions/18568736/how-to-hide-element-using-twitter-bootstrap-3-and-show-it-using-jquery): `.addClass('hidden')`
 - [Element append, the slow and fast ways](https://howchoo.com/g/mmu0nguznjg/learn-the-slow-and-fast-way-to-append-elements-to-the-dom): 
 	+ Slow, but clean: naive jQuery append element by element
 	+ Fast, but require fiddle: convert elements to html string and set html with / without html
 	+ How big is the difference?: for 10000 elements, there would be a 10 times difference in rendering time
-	+ Caveats of the "Fast" solution: probably have to manually incorporate css styles into element html.
+	+ Caveats of the "Fast" solution: you lose the bread and butter of jQuery, in this Tictactoe I have to manually incorporate css styles into element html.
+- [jQuery event binding: .on, .off, .one](http://www.andismith.com/blog/2011/11/on-and-off/): conveninent bind event handlers to UI elements.
+- [Event delagation](https://davidwalsh.name/event-delegate): an important mechansim to bind events efficiently. In tictactoe, instead of binding click events to all the available cells, which are huge in n by n problem, we only need to bind to the parent element and extract the event detail (which child element clicked) in the implementation.
+- [Making responsive squares using table](https://stackoverflow.com/questions/20456694/grid-of-responsive-squares/20457076#20457076): for generic tabular data and layout, instead of using Bootstrap's grid system, which is limited by 12 columns denomination, consider use table with dynamic sizing.
+- [Array copying](https://stackoverflow.com/questions/3978492/javascript-fastest-way-to-duplicate-an-array-slice-vs-for-loop): fastest ways are `while (i--) copy();` and .slice(0, n)`
+- setTimeout(fn, waitTime) is asynchronous: hence loops involved promises using `setTimeout` does not cause stackOverFlow. The function simply fires direction asynchrounously and return at the end of each iteration.
 
+
+![](https://i.stack.imgur.com/s0MqH.jpg)
+
+Chrome's performance analysis tool:
+![Imgur](http://i.imgur.com/I0v2dft.png)
+20 by 20 grid tic-tac-toe
 
 ## Algorithms:
 ### Roman conversions ([here](http://www.rapidtables.com/convert/number/how-number-to-roman-numerals.htm)): 

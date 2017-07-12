@@ -342,13 +342,13 @@ $('document').ready(function() {
 	}
 
 	var model = new (function () {
-		this.rows = 20;
-		this.cols = 20;
-		this.cellsToWin = 5;
+		this.rows = 3;
+		this.cols = 3;
+		this.cellsToWin = 3;
 		this.board = null;
 		this.currentPlayer = null;
-		this.players = ['Human', 'AI'];
-		this.gameStats = null;
+		this.players = ['AI', 'AI'];
+		this.gameScore = null;
 		this.firstPlayer = null;
 		var humanPlaying = false;
 
@@ -358,10 +358,10 @@ $('document').ready(function() {
 			self.firstPlayer = self.players[index];
 		}
 
-		function resetStats() {
-			self.gameStats = {};
+		function resetScores() {
+			self.gameScore = {};
 			self.players.forEach(function(player){
-				self.gameStats[player] = 0;
+				self.gameScore[player.getMark()] = 0;
 			});
 		}
 
@@ -383,29 +383,31 @@ $('document').ready(function() {
 		this.resetGame = function () {
 			self.board = makeBoard(self.rows, self.cols);
 			setFirstPlayer(randint(self.players.length));
-			setFirstPlayer(0);
 			self.currentPlayer = self.firstPlayer;
-
 		};
 
 		this.resetMatch = function () {
 			self.resetGame();
-			resetStats();
+			resetScores();
 		};
 	})();
 
 	var view = new (function () {
 		var boardElm = $('#board');
+		var statusFeedElm = $('#game-status');
+		var scoreStatusElms = [$('#score-p0'), $('#score-p1')];
 		var cellTemlate = boardElm.find('tr').first().clone();
 
 		var renderMap = {
 			0: {
 				icon: 'fa-times',
 				text: 'text-success',
+				status: 'alert-danger',
 			},
 			1: {
 				icon: 'fa-circle-o',
 				text: 'text-danger',
+				status: 'alert-success',
 			}
 		};
 
@@ -417,6 +419,11 @@ $('document').ready(function() {
 		function encodeCellId(x, y) {
 			return  String(x) + '-' + String(y);
 		}
+
+		function decodeCellId(id) {
+			return id.split('-').map(Number);
+		}
+
 
 		this.renderBoard = function (board, status) {	
 			var m = board.length;
@@ -430,13 +437,11 @@ $('document').ready(function() {
 			var markStyle = 'style="font-size: ' + String(markSize) + 'vmin;"';
 
 
-			console.log('Processing inner');
 			// THE FOLLOWING LINES ARE HIGLY COUPLED WITH encodeCellId
 			// MUST BE CHANGED ON CHANGIN that as well
 			var templateString = cellTemlate.html()
 				.replace('id=""', 'id="" ' + tdStyle)
 				.replace('class="subtable-cell hidden"', 'class="subtable-cell hidden" ' + markStyle);
-			console.log(templateString);
 			var row = Array(n);
 			var i = row.length;
 			while (i--) {
@@ -448,10 +453,9 @@ $('document').ready(function() {
 			while (i--) {
 				table[i] = templateRow.replace(/id="/g, 'id="' + String(i) + '-');
 			}
-			// END OF COUPLED LINES
 			boardElm.empty();
 			boardElm.html(table.join('\n'))
-			console.log('done processing inner');
+			// END OF COUPLED LINES
 
 			// SLOWER IMPLEMENTATION, LEANER BUT SLOW DUE TO JQUERY OVERHEAD
 			// var cells = board.map(function(row) {
@@ -477,39 +481,50 @@ $('document').ready(function() {
 			// var colSize = String(100. / n) + '%';
 			// var markSize = 12. * 3 / n; // 12vw is nice for a board of m columns
 			// $('#board td').width(colSize);
-			// console.log('done setting board width');
 			// $('.subtable-cell').css('font-size', String(markSize) + 'vmin');
-			// console.log('done setting cell marks');
 		};
 
-		this.bindMoves = function (board, controllerHotline) {
-			$.each(board, function (i, row) {
-				$.each(row, function (j, cell) {
-					var cellId = encodeCellId(i, j);
-					// console.log('binding', cellId);
-					$('#' + cellId).click(function (argument) {
-						if (controllerHotline.authorisedPlayer !== undefined &&
-							controllerHotline.authorisedPlayer === controllerHotline.player.mark) {
-							controllerHotline.player.resolve({
-								x: i,
-								y: j,
-								mark: controllerHotline.player.mark
-							});
-							self.disableMoveInput(i, j); // deactivate after click
+		this.enableUserInput = function (controllerHotline) {
+			boardElm.on('click', function (event) {
+				function findId(e) {
+					// keep going up one level to find the cell id
+					// this works or not depending on the html markup
+					var level = 10;
+					var node = e;
+					while (level--) {
+						if (node.id) {
+							return node.id;
+						} else {
+							node = node.parentNode;
 						}
-						console.log('You clicked', cellId);
+					}
+				}
+				var cellId = findId(event.target);
+				console.log('clicked', cellId);
+				try {
+					var xy = decodeCellId(cellId);
+				} catch (error) {
+					console.log(error);
+					throw 'Invalid click event on' + String(event.target);	
+				}
+
+				if (!controllerHotline.validate({x: xy[0], y: xy[1]})) {
+					return;
+				}
+
+				if (controllerHotline.authorisedPlayer !== undefined &&
+					controllerHotline.authorisedPlayer === controllerHotline.player.mark) {
+					controllerHotline.player.resolve({
+						x: xy[0],
+						y: xy[1],
+						mark: controllerHotline.player.mark
 					});
-				});
+				}
 			});
 		};
 
-		this.disableMoveInput = function (x, y) {
-			var cell = $('#' + encodeCellId(x, y))
-			if (cell.length) {
-				cell.off('click');
-			} else {
-				console.log('Failed to disable input on cell', x, y);
-			}
+		this.disableUserInput = function () {
+			boardElm.off();
 		};
 
 		this.renderMove = function (move) {
@@ -522,6 +537,51 @@ $('document').ready(function() {
 				.find('.subtable-cell i')
 				.addClass([styles.icon, styles.text].join(' '))
 				.toggleClass('hidden');
+		};
+
+		this.displaySettledResult = function (result, score, callback) {
+			function highlightWinningLine (line) {
+				line.forEach(function (xy) {
+					var x = xy[0], y = xy[1];
+					$('#' + encodeCellId(x, y)).addClass('won-cell');
+				});
+			}
+
+			if (result.status === 'draw') {
+				self.displayStatus(result);
+			} else if (result.status === 'won') {
+				result.player = result.winner;
+				self.displayStatus(result);
+				highlightWinningLine(result.line);
+				self.updateScore(score);
+			}
+
+			boardElm.one('click', function (argument) {
+				callback();
+			});
+		};
+
+		this.displayStatus = function (result) {
+			function removeStyles() {
+				statusFeedElm.removeClass('alert-info alert-success alert-danger');
+			}
+			removeStyles();
+			if (result.status === 'unsettled') {
+				statusFeedElm.addClass(renderMap[result.player].status);
+				statusFeedElm.text('Game started! Player ' + (Number(result.player) + 1) + "'s turn");
+			} else if (result.status === 'draw') {
+				statusFeedElm.addClass('alert-info');
+				statusFeedElm.text('Draw! Click board to continue!')
+			} else if (result.status === 'won') {
+				statusFeedElm.addClass('alert-info');
+				statusFeedElm.text('Player ' + result.player + ' won! Click board to continue!');
+			}
+		};
+
+		this.updateScore = function (score) {
+			for (var k in scoreStatusElms) {
+				scoreStatusElms[k].text(score[k]);
+			}
 		};
 
 		this.renderBoardAscii = function (board, status) {
@@ -581,19 +641,27 @@ $('document').ready(function() {
 		var inputHotline = {
 			on: function () {
 					console.log('hotline on');
-					if (model.currentPlayer instanceof HumanPlayer) {
-						inputHotline.authorisedPlayer = model.currentPlayer.getMark();
-					}
+					inputHotline.authorisedPlayer = model.currentPlayer.getMark();
+					view.enableUserInput(inputHotline);
 				},
 
 			off: function () {
 					console.log('hotline off');
 					for (var k in inputHotline) {
-						if (['on', 'off'].indexOf(k) === -1) {
+						if (['on', 'off', 'validate'].indexOf(k) === -1) {
 							delete inputHotline[k];
 						}
 					}
+					view.disableUserInput();
 				},
+			validate: function (move) {
+				var x = move.x, y = move.y;
+				return (
+					x >= 0 && x < model.rows
+					&& y >= 0 && y < model.cols
+					&& model.board[x][y] === CONSTANTS.UNOCCUPIED
+				);
+			}
 		};
 
 		model.init();
@@ -603,9 +671,6 @@ $('document').ready(function() {
 			view.renderMove(move);
 			return new Promise(function(resolve, reject) {
 				model.board[move.x][move.y] = move.mark;
-				if(model.humanIsPlaying()) {
-					view.disableMoveInput(move.x, move.y);
-				}
 				resolve(model.currentPlayer);
 			})
 		}
@@ -622,33 +687,8 @@ $('document').ready(function() {
 			model.currentPlayer = model.firstPlayer;
 		};
 
-		function nexPlayerMark (currentPlayerMark) {
+		function nextPlayerMark (currentPlayerMark) {
 			return (currentPlayerMark+1) % model.players.length;
-		}
-
-		function gameEnded () {
-			var result = TicTacToe.checkGameStatus({
-				board: model.board, 
-				cellsToWin: model.cellsToWin,
-				next: nexPlayerMark
-			});
-			var ended;
-			if (result.status === 'won' || result.status === 'draw') {
-				view.display('Game ended');
-				view.display(result);
-				ended = true;
-			} else {
-				ended = false;
-			}
-			if (result.status === 'won') {
-				result.line.forEach(function (cell) {
-					var x = cell[0], y = cell[1];
-					// model.board[x][y] = model.board[x][y].toUpperCase();
-					view.display(model.board[x][y]);
-				});
-			}
-			view.renderGame(model, result);
-			return ended;
 		}
 
 		function waitForMove () {
@@ -664,7 +704,7 @@ $('document').ready(function() {
 			var moved = model.currentPlayer.makeAMove({
 				board: model.board, 
 				cellsToWin: model.cellsToWin,
-				next: nexPlayerMark,
+				next: nextPlayerMark,
 				hotline: inputHotline
 			});
 
@@ -677,46 +717,62 @@ $('document').ready(function() {
 				});
 			});
 		}
+		
+		function continueOrReset () {
+			var result = TicTacToe.checkGameStatus({
+				board: model.board, 
+				cellsToWin: model.cellsToWin,
+				next: nextPlayerMark
+			});
 
-		this.gameOn = function () {
+			var settled = result.status !== 'unsettled';
 
+			if (result.status === 'won') {
+				model.gameScore[result.winner] += 1;
+			}
+
+			return new Promise (function (resolve, reject) {
+				result.player = model.currentPlayer.getMark();
+
+				function cleanup() {
+					model.resetGame();
+					self.initView();
+					resolve(result);
+				}
+
+				if (settled) {
+					view.displaySettledResult(result, model.gameScore, cleanup);
+				} else {
+					model.currentPlayer = getNextPlayer(model.currentPlayer);
+					resolve(result);
+				}
+			});
+		}
+
+		this.gameOn = function () {				
 			waitForMove()
 				.then(updateBoard)
-				.then(function (argument) {
-					if (gameEnded()) {
-						return;
-					}
-					model.currentPlayer = getNextPlayer(model.currentPlayer);
-					setTimeout(self.gameOn, waitTimeBetweenMoves);
-					// self.gameOn();
-				})
+				.then(continueOrReset)
+				.then(view.displayStatus)
 				.catch(function (error) {
 					console.log(error);
 				})
+				.then(function (argument) {
+					setTimeout(self.gameOn, waitTimeBetweenMoves);
+				})
 				;
+
 		};
 
 		this.initView = function () {
 			view.renderBoard(model.board);
-
-			// only allow inputs when a human is playing
-			if (model.humanIsPlaying()) {
-				view.bindMoves(model.board, inputHotline);
-			}
 		};
 
-		this.takeTurn = function () {
-			gameNotEnded()
-				.then(function (argument) {
-					model.currentPlayer = getNextPlayer(model.currentPlayer);
-				})
-				.catch(function(error) {
-					console.log(error);
-				})
-				.then(model.currentPlayer.makeAMove)
-				.then(updateBoard)
-				.then(getNextPlayer)
-				;
+		this.setup = function () {
+			$('#game-setup').modal('show');
+			return new Promise (function (resolve, reject) {
+
+			});
 		};
 
 	})(model, view);
@@ -726,13 +782,16 @@ $('document').ready(function() {
 	// 	controller.gameOn();
 	// })();
 	(function test() {
-		controller.startGame();
-		controller.initView();
-		console.log(model);
-		console.assert(model.rows === 3 && model.cols === 3);
-		console.assert([0, 1].indexOf(model.currentPlayer.getMark()) !== -1);
-		controller.gameOn(model.firstPlayer);
-		// controller.takeTurn();
-		CONTROLLER = controller;
+		controller.setup()
+			.then(function (argument) {
+				controller.startGame();
+				controller.initView();
+				console.log(model);
+				console.assert(model.rows === 3 && model.cols === 3);
+				console.assert([0, 1].indexOf(model.currentPlayer.getMark()) !== -1);
+				controller.gameOn(model.firstPlayer);
+				// controller.takeTurn();
+				CONTROLLER = controller;
+			});
 	})();
 });
