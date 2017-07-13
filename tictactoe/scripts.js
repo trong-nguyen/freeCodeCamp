@@ -392,6 +392,10 @@ $('document').ready(function() {
 		};
 	})();
 
+	var modalView = new (function (argument) {
+		
+	});
+
 	var view = new (function () {
 		var boardElm = $('#board');
 		var statusFeedElm = $('#game-status');
@@ -768,10 +772,44 @@ $('document').ready(function() {
 			view.renderBoard(model.board);
 		};
 
-		this.setup = function () {
-			$('#game-setup').modal('show');
-			return new Promise (function (resolve, reject) {
+		function bindSymbolSelection () {
+			function symbolElmId(index, opt) {
+				return '#player-' + String(index) + '-symbol-' + opt;
+			}
+			[0, 1].forEach(function (idx) {
+				// Enforce o-symbol selection for player 2 if player 1 chose x-symbol
+				// and vice versa
+				$(symbolElmId(idx, 'opt') + ' :input').change(function (event) {
+					var thisPlayer = idx;
+					var thatPlayer = (idx + 1) % 2;
+					var thisPlayerChoseX = $(symbolElmId(thisPlayer, 'x')).prop('checked');
+					$(symbolElmId(thatPlayer, 'o')).prop('checked', thisPlayerChoseX);
+					$(symbolElmId(thatPlayer, 'x')).prop('checked', !thisPlayerChoseX);
+				});
+			});
+			
+		}
 
+		this.setup = function () {
+			bindSymbolSelection();
+
+			// symbol selector
+			// set players
+			// set each player
+
+
+			var setupElm = $('#game-setup');
+			setupElm.modal('show');
+
+			setupElm.on('shown.bs.modal', function (e) {
+				console.log('Dialog shown');
+			});
+
+			return new Promise (function (resolve, reject) {
+				setupElm.on('hidden.bs.modal', function (e) {
+					resolve();
+					console.log('Dialog shown');
+				});
 			});
 		};
 

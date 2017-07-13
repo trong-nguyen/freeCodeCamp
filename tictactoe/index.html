@@ -19,7 +19,73 @@
         </button>
       </div>
       <div class="modal-body">
-        ...
+        <div class="container-fluid">
+          <div class="row my-2">
+            <label for="boardRowsInput" class="col-sm-4 col-form-label">Board rows</label>
+            <div class="col-sm-3">
+              <input class="form-control" type="number" value="3" id="boardRowsInput">
+            </div>
+            <label for="boardColsInput" class="col-sm-2 col-form-label">columns</label>
+            <div class="col-sm-3">
+              <input class="form-control" type="number" value="3" id="boardColsInput">
+            </div>
+          </div>
+          <div class="row my-2">
+            <label for="NumPlayersInput" class="col-sm-4 col-form-label">No. of players</label>
+            <div class="col-sm-3">
+              <input class="form-control" type="number" value="2" id="NumPlayersInput">
+            </div>
+          </div>
+
+          <form class="row align-items-center my-2">
+            <label class="col-sm-4 col-form-label">
+              <input class="form-control" type="text" placeholder="Player 1" name="player0Name" id="player0Name">
+            </label>
+            <div class="col-sm-4 form-check">
+              <label class="form-check-label">
+                <input class="form-check-input" type="checkbox"> Computer
+              </label>
+            </div>
+
+            <div class="col-sm-4" id="player-0-symbol-opt">
+              <div class="form-check">
+                <label class="form-check-label">
+                  <input class="form-check-input" type="radio" name="player-0-symbol" id="player-0-symbol-x" checked="checked"><i class="fa fa-times text-success"></i>
+                </label>
+              </div>
+              <div class="form-check">
+                <label class="form-check-label">
+                  <input class="form-check-input" type="radio" name="player-0-symbol" id="player-0-symbol-o"><i class="fa fa-circle-o text-danger"></i>
+                </label>
+              </div>
+            </div>
+          </form>
+
+          <form class="row my-2">
+            <label class="col-sm-4 col-form-label">
+              <input class="form-control" type="text" placeholder="Player 2" name="player1Name" id="player1Name">
+            </label>
+            <div class="col-sm-4 form-check pt-1">
+              <label class="form-check-label">
+                <input class="form-check-input" type="checkbox"> Computer
+              </label>
+            </div>
+
+            <div class="col-sm-4"  id="player-1-symbol-opt">
+              <div class="form-check">
+                <label class="form-check-label">
+                  <input class="form-check-input" type="radio" name="player-1-symbol" id="player-1-symbol-x"><i class="fa fa-times text-success"></i>
+                </label>
+              </div>
+              <div class="form-check">
+                <label class="form-check-label">
+                  <input class="form-check-input" type="radio" name="player-1-symbol" id="player-1-symbol-o" checked="checked"><i class="fa fa-circle-o text-danger"></i>
+                </label>
+              </div>
+            </div>
+          </form>
+
+        </div>
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-primary" data-dismiss="modal">Start gaming</button>

@@ -21,13 +21,34 @@
 - [Making responsive squares using table](https://stackoverflow.com/questions/20456694/grid-of-responsive-squares/20457076#20457076): for generic tabular data and layout, instead of using Bootstrap's grid system, which is limited by 12 columns denomination, consider use table with dynamic sizing.
 - [Array copying](https://stackoverflow.com/questions/3978492/javascript-fastest-way-to-duplicate-an-array-slice-vs-for-loop): fastest ways are `while (i--) copy();` and .slice(0, n)`
 - setTimeout(fn, waitTime) is asynchronous: hence loops involved promises using `setTimeout` does not cause stackOverFlow. The function simply fires direction asynchrounously and return at the end of each iteration.
+- ARIA stands for accessibility
+- UX selection [rules of thumb](https://ux.stackexchange.com/questions/10728/dropdown-vs-radio-button), [more indept](https://www.nngroup.com/articles/checkboxes-vs-radio-buttons/):
+	+ binary: checkbox
+	+ 2-4 options: radios
+	+ mostly text: radios
+	+ many options: dropdown
+	+ lots of options: dropdown with search
+
+![](https://i.stack.imgur.com/3eDK3.png)
 
 
 ![](https://i.stack.imgur.com/s0MqH.jpg)
 
-Chrome's performance analysis tool:
+## Chrome's performance analysis tool:
 ![Imgur](http://i.imgur.com/I0v2dft.png)
 20 by 20 grid tic-tac-toe
+
+## Control flow with Promises
+Asynchronous programming are generally involved with Serial Flow and Parallel Flow. [Article here](https://colintoh.com/blog/staying-sane-with-asynchronous-programming-promises-and-generators.)
+- Serial flow pattern: we have a set of tasks that need to be executed in order: one needs to be completed before another starts. For example, task B requires the data returned by task B, like the crop must be harvested before packaged, before the former enters execution.
+- Parallel flow: in contrast, paralle flow does not care much about the order of execution, as long as they are executed.
+In practice, the two patterns regularly intertwine, even in a single application.
+
+## Architectural Patterns
+[Patterns in archtectural design](https://en.wikipedia.org/wiki/Architectural_pattern)
+
+## Module pattern
+[Article](http://www.adequatelygood.com/JavaScript-Module-Pattern-In-Depth.html)
 
 ## Algorithms:
 ### Roman conversions ([here](http://www.rapidtables.com/convert/number/how-number-to-roman-numerals.htm)): 
