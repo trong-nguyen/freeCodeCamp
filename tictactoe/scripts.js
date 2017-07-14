@@ -267,29 +267,6 @@ var HumanPlayer = function (mark) {
 	};
 };
 
-var RandomPlayer = function (mark) {
-	var self = this;
-	var _mark = mark;
-
-	this.getMark = function (argument) {
-		return _mark;
-	}
-
-	this.makeAMove = function (game) {
-		game.player = _mark;
-		var move = TicTacToe.randomMove(game);
-
-		return new Promise(function (resolve, reject) {
-			if (move === null) {
-				reject('Invalid move');
-			} else {
-				move.mark = _mark;
-				resolve(move);
-			}
-		});
-	};
-};
-
 var ComputerPlayer = function (mark) {
 	var _mark = mark;
 	this.getMark = function (argument) {
@@ -312,8 +289,6 @@ var ComputerPlayer = function (mark) {
 	};
 };
 
-// var ComputerPlayer = HumanPlayer;
-
 var CONTROLLER = null;
 
 function makePlayer(type, mark) {
@@ -322,9 +297,7 @@ function makePlayer(type, mark) {
 		return type;
 	}
 
-	if (type === 'Random') {
-		return new RandomPlayer(mark);
-	} else if (type === 'AI') {
+	if (type === 'AI') {
 		return new ComputerPlayer(mark);
 	} else if (type === 'Human') {
 		return new HumanPlayer(mark);
@@ -348,6 +321,8 @@ $('document').ready(function() {
 		this.board = null;
 		this.currentPlayer = null;
 		this.players = ['AI', 'AI'];
+		this.playerNames = ['Julianne', 'Chelsea'];
+		this.playerSymbols = ['fa-times', 'fa-circle-o', 'fa-glass', 'fa-moon-o', 'fa-mars', 'fa-map-marker', 'fa-anchor', 'fa-bug', 'fa-ca', 'fa-plane']
 		this.gameScore = null;
 		this.firstPlayer = null;
 		var humanPlaying = false;
@@ -392,10 +367,6 @@ $('document').ready(function() {
 		};
 	})();
 
-	var modalView = new (function (argument) {
-		
-	});
-
 	var view = new (function () {
 		var boardElm = $('#board');
 		var statusFeedElm = $('#game-status');
@@ -428,6 +399,84 @@ $('document').ready(function() {
 			return id.split('-').map(Number);
 		}
 
+		this.adjustNumberOfPlayers = function () {
+			function add(n, baseIdx) {
+				var playerTemplate = $('.player-setup')
+										.first()
+										.clone();
+				playerTemplate.find('.player-symbol-setup').remove();
+
+				var names = ['Bob', 'Ashley', 'Ann', 'Ted', 'Kim', 'Rob', 'Tom', 'Gill']
+				return Array(n).fill().map(function (_, i) {
+					var t = playerTemplate.clone();
+					t.find('#player-0-name')
+					.attr('id', 'player-0-name'.replace('0', String(baseIdx + i)))
+					.attr('name', 'player-0-name'.replace('0', String(baseIdx + i)))
+					.val(names[baseIdx-2+i]);
+
+					// default to computer player
+					t.find('.player-type-setup input').prop('checked', true);
+					return t;
+				});
+			};
+
+			function getCurrentPlayers () {
+				return $('.player-setup').length;
+			}
+
+			function getNewPlayers() {
+				return Number($('#numPlayersInput').val());
+			}
+
+			var currentPlayers = getCurrentPlayers(); // 1 for board, 1 for players
+			var newPlayers = getNewPlayers();
+
+			if (!newPlayers || newPlayers < 2 || newPlayers > 10) {
+				return;
+			}
+
+			var playersToAdd = newPlayers - currentPlayers;
+
+			if (playersToAdd > 0) {
+				var newPlayers = add(playersToAdd, currentPlayers);
+				console.log(newPlayers);
+
+				$('#setup-content').append(newPlayers);
+				$('#form-setup').validator('update'); // refresh validators
+			}
+			else {
+				while (getCurrentPlayers() !== newPlayers) {
+					$('.player-setup').last().remove();
+				}
+			}
+			
+			// $('#form-setup').validator('update'); // refresh validators
+		};
+
+		this.bindSymbolSelection = function () {
+			function symbolElmId(index, opt) {
+				return '#player-' + String(index) + '-symbol-' + opt;
+			}
+			[0, 1].forEach(function (idx) {
+				// Enforce o-symbol selection for player 0 if player 1 chose x-symbol
+				// and vice versa
+				$(symbolElmId(idx, 'opt') + ' :input').change(function (event) {
+					var thisPlayer = idx;
+					var thatPlayer = (idx + 1) % 2;
+					var thisPlayerChoseX = $(symbolElmId(thisPlayer, 'x')).prop('checked');
+					$(symbolElmId(thatPlayer, 'o')).prop('checked', thisPlayerChoseX);
+					$(symbolElmId(thatPlayer, 'x')).prop('checked', !thisPlayerChoseX);
+				});
+			});	
+		};
+
+		this.bindRowsColsSelection = function () {
+			var rowsInput = $('#boardRowsInput');
+			var colsInput = $('#boardColsInput');
+			rowsInput.change(function () {
+				colsInput.val(rowsInput.val());
+			});
+		};
 
 		this.renderBoard = function (board, status) {	
 			var m = board.length;
@@ -772,43 +821,89 @@ $('document').ready(function() {
 			view.renderBoard(model.board);
 		};
 
-		function bindSymbolSelection () {
-			function symbolElmId(index, opt) {
-				return '#player-' + String(index) + '-symbol-' + opt;
-			}
-			[0, 1].forEach(function (idx) {
-				// Enforce o-symbol selection for player 2 if player 1 chose x-symbol
-				// and vice versa
-				$(symbolElmId(idx, 'opt') + ' :input').change(function (event) {
-					var thisPlayer = idx;
-					var thatPlayer = (idx + 1) % 2;
-					var thisPlayerChoseX = $(symbolElmId(thisPlayer, 'x')).prop('checked');
-					$(symbolElmId(thatPlayer, 'o')).prop('checked', thisPlayerChoseX);
-					$(symbolElmId(thatPlayer, 'x')).prop('checked', !thisPlayerChoseX);
-				});
-			});
-			
-		}
-
 		this.setup = function () {
-			bindSymbolSelection();
+			var setupCollector = {
+				board: function (cols, rows) {
+					if (cols && rows) {
+						model.rows = rows;
+						model.cols = cols;
+
+						model.cellsToWin = Math.max(Math.floor(0.3*model.rows), 3);
+
+						model.init();
+					} else {
+						throw 'Invalid rows and cols input';
+					}
+					console.log('cols', cols, model);
+				},
+
+				players: function (names, types) {
+					var n = names.length;
+					model.playerNames = names;
+					model.players = Array(n).fill('AI');
+					types.forEach(function (x, i) {
+						if (x !== 'Computer') {
+							model.players[i] = 'Human';
+						}
+					});
+				},
+
+				symbol: function (player1ChoseX) {
+					if (player1ChoseX) {
+						var tmp = model.playerSymbols[0];
+						model.playerSymbols[0] = model.playerSymbols[1];
+						model.playerSymbols[1] = tmp;
+					}
+				},
+			};
+
+			view.bindSymbolSelection();
+			view.bindRowsColsSelection();
+			var formsValid = true;
 
 			// symbol selector
 			// set players
 			// set each player
 
 
-			var setupElm = $('#game-setup');
-			setupElm.modal('show');
+			var modalElm = $('#game-setup');
+			modalElm.modal('show');
 
-			setupElm.on('shown.bs.modal', function (e) {
-				console.log('Dialog shown');
+			var formElm = $('#form-setup');
+
+			formElm.on({
+				'invalid.bs.validator': function (e) {
+					console.log('invalid');
+					formsValid = false;
+				},
+				'valid.bs.validator': function (e) {
+					console.log('valid');
+					formsValid = true;
+				},
+				'validated.bs.validator': function (e) {
+					// console.log('valid', e);
+					if (formsValid && e.relatedTarget.id === 'numPlayersInput') {
+						view.adjustNumberOfPlayers();
+					}
+				}
+			});
+
+			formElm.submit(function (e) {
+				e.preventDefault(); // crucial to prevent page submission
+				if (formsValid) {
+					var rows = Number($('#boardRowsInput').val());
+					var cols = Number($('#boardColsInput').val());
+					setupCollector.board(rows, cols);
+
+					// var players = $()
+
+					modalElm.modal('hide');
+				}
 			});
 
 			return new Promise (function (resolve, reject) {
-				setupElm.on('hidden.bs.modal', function (e) {
+				modalElm.on('hidden.bs.modal', function (e) {
 					resolve();
-					console.log('Dialog shown');
 				});
 			});
 		};
