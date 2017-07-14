@@ -230,7 +230,7 @@ var TicTacToe = {
 	calculatedMove: function (game) {
 		var n = game.board.length;
 		var depth = n * n;
-		var tic = TicTacToe.minmax(game, depth, true);
+		var tic = TicTacToe.minmax(game, depth, false);
 		var move = {
 			x: tic[1][0],
 			y: tic[1][1]
@@ -392,13 +392,21 @@ $('document').ready(function() {
 
 		this.init = function (playerConfigs) {
 			var n = playerConfigs.length;
-			// only first and second players are treated differently
+
+			function rotate(sequence, n) {
+				return Array(n).fill().map(function (_, i) {
+					return sequence[i % sequence.length];
+				});
+			};
+
+			var textStyles = rotate(['text-success', 'text-danger', 'text-primary', 'text-info', 'text-warning'], n);
+			var statusStyles = rotate(['bg-success', 'bg-danger', 'bg-primary', 'bg-info', 'bg-warning'], n);
 			renderMap = playerConfigs.map(function (config, i) {
 				return {
 					name: config.name,
 					symbol: config.symbol,
-					text: i > 1 ? 'text-primary' : ['text-success', 'text-danger'][i],
-					status: i === 0 ? 'alert-danger' : (i === n-1 ? 'alert-success' : 'alert-info'),
+					text: textStyles[i],
+					status: statusStyles[(i+1) % n],
 				};
 			});
 
@@ -634,19 +642,26 @@ $('document').ready(function() {
 				return renderMap[p].name;
 			}
 			function removeStyles() {
-				statusFeedElm.removeClass('alert-info alert-success alert-danger');
+				var allStatusClasses = renderMap.map(function (detail) {
+					return detail.status;
+				});
+				allStatusClasses.push('bg-inverse');
+				statusFeedElm.removeClass(allStatusClasses.join(' '));
 			}
 			removeStyles();
+
+			var totalPlayers = renderMap.length;
+			var nextPlayer = (Number(result.player) + 1) % totalPlayers;
+			var status = renderMap[result.player].status;
+			var prevStatus = renderMap[(Number(result.player) - 1 + totalPlayers) % totalPlayers].status;
 			if (result.status === 'unsettled') {
-				statusFeedElm.addClass(renderMap[result.player].status);
-				var totalPlayers = renderMap.length;
-				var nextPlayer = (Number(result.player) + 1) % totalPlayers;
+				statusFeedElm.addClass(status);
 				statusFeedElm.text('Game started! ' + getPlayerName(nextPlayer) + "'s turn");
 			} else if (result.status === 'draw') {
-				statusFeedElm.addClass('alert-info');
+				statusFeedElm.addClass('bg-inverse');
 				statusFeedElm.text('Draw! Click board to continue!')
 			} else if (result.status === 'won') {
-				statusFeedElm.addClass('alert-info');
+				statusFeedElm.addClass(prevStatus);
 				statusFeedElm.text(getPlayerName(result.player) + ' won! Click board to continue!');
 			}
 		};
@@ -949,11 +964,11 @@ $('document').ready(function() {
 			.then(function (argument) {
 				controller.startGame();
 				controller.initView();
-				console.assert(model.rows === 3 && model.cols === 3);
-				console.assert([0, 1].indexOf(model.currentPlayer.getMark()) !== -1);
+				// console.assert(model.rows === 3 && model.cols === 3);
+				// console.assert([0, 1].indexOf(model.currentPlayer.getMark()) !== -1);
 				controller.gameOn(model.firstPlayer);
 				// controller.takeTurn();
-				CONTROLLER = controller;
+				// CONTROLLER = controller;
 			});
 	})();
 });
