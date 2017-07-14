@@ -276,10 +276,12 @@ var ComputerPlayer = function (mark) {
 	this.makeAMove = function (game) {
 		game.player = _mark;
 		var movesLeft = TicTacToe.getUnoccupied(game.board).length;
-		var make = movesLeft < 12 ? TicTacToe.calculatedMove : TicTacToe.randomMove;
+		var computeThreshold = 10;
+		var make = movesLeft < computeThreshold ? TicTacToe.calculatedMove : TicTacToe.randomMove;
 		var move = make(game);
 		return new Promise(function (resolve, reject) {
 			if (move === null) {
+				// console.log('undefined', move);
 				reject('Invalid move');
 			} else {
 				move.mark = _mark;
@@ -368,25 +370,41 @@ $('document').ready(function() {
 	})();
 
 	var view = new (function () {
+		var self = this;
+
 		var boardElm = $('#board');
 		var statusFeedElm = $('#game-status');
-		var scoreStatusElms = [$('#score-p0'), $('#score-p1')];
+		var scoreStatusElms = [$('#player-score-0'), $('#player-score-1')];
 		var cellTemlate = boardElm.find('tr').first().clone();
 
 		var renderMap = {
 			0: {
-				icon: 'fa-times',
+				symbol: 'fa-times',
 				text: 'text-success',
 				status: 'alert-danger',
 			},
 			1: {
-				icon: 'fa-circle-o',
+				symbol: 'fa-circle-o',
 				text: 'text-danger',
 				status: 'alert-success',
 			}
 		};
 
-		var self = this;
+		this.init = function (playerConfigs) {
+			var n = playerConfigs.length;
+			// only first and second players are treated differently
+			renderMap = playerConfigs.map(function (config, i) {
+				return {
+					name: config.name,
+					symbol: config.symbol,
+					text: i > 1 ? 'text-primary' : ['text-success', 'text-danger'][i],
+					status: i === 0 ? 'alert-danger' : (i === n-1 ? 'alert-success' : 'alert-info'),
+				};
+			});
+
+			initStatus();
+		};
+
 		this.display = function (what) {
 			console.log(what);
 		};
@@ -439,7 +457,6 @@ $('document').ready(function() {
 
 			if (playersToAdd > 0) {
 				var newPlayers = add(playersToAdd, currentPlayers);
-				console.log(newPlayers);
 
 				$('#setup-content').append(newPlayers);
 				$('#form-setup').validator('update'); // refresh validators
@@ -508,34 +525,32 @@ $('document').ready(function() {
 			}
 			boardElm.empty();
 			boardElm.html(table.join('\n'))
-			// END OF COUPLED LINES
 
-			// SLOWER IMPLEMENTATION, LEANER BUT SLOW DUE TO JQUERY OVERHEAD
-			// var cells = board.map(function(row) {
-			// 	return row.map(function (cell) {
-			// 		var template = cellTemlate.clone();					
-			// 		return template;
-			// 	});
-			// });
-
-			// HERE
-			// boardElm.empty();
-			// $.each(cells, function (i, row) {
-			// 	var tr = $('<tr></tr>');
-			// 	$.each(row, function (j, cell) {
-			// 		cell.attr('id', encodeCellId(i, j));
-			// 		tr.append(cell);
-			// 	});
-			// 	boardElm.append(tr);
-			// });
-
-			// // CSS
-			// // Change the columns layout
-			// var colSize = String(100. / n) + '%';
-			// var markSize = 12. * 3 / n; // 12vw is nice for a board of m columns
-			// $('#board td').width(colSize);
-			// $('.subtable-cell').css('font-size', String(markSize) + 'vmin');
 		};
+
+		function initStatus() {
+			var colSize = Math.max(Math.ceil(12 / renderMap.length), 3);
+			var defColSize = '6';
+
+			var tag = $('#game-scores');
+			var template = tag.children().first().clone();
+
+			template
+				.removeClass('col-' + defColSize)
+				.addClass('col-' + String(colSize));
+
+			tag.empty()
+				.append(renderMap.map(function (detail, i) {
+					var t = template.clone();
+					t.addClass(detail.text);
+					var id = t.attr('id');
+					t.attr('id', id.replace('0', String(i)));
+					t.find('.player-name').text(detail.name);
+					return t;
+				}));
+
+
+		}
 
 		this.enableUserInput = function (controllerHotline) {
 			boardElm.on('click', function (event) {
@@ -583,12 +598,12 @@ $('document').ready(function() {
 		this.renderMove = function (move) {
 			var styles = renderMap[move.mark];
 			if (!styles) {
-				throw 'Invalid move' + String(styles);
+				throw 'Invalid style ' + String(styles);
 			}
 			var cellId = encodeCellId(move.x, move.y);
 			$('#' + cellId)
 				.find('.subtable-cell i')
-				.addClass([styles.icon, styles.text].join(' '))
+				.addClass([styles.symbol, styles.text].join(' '))
 				.toggleClass('hidden');
 		};
 
@@ -615,25 +630,30 @@ $('document').ready(function() {
 		};
 
 		this.displayStatus = function (result) {
+			function getPlayerName (p) {
+				return renderMap[p].name;
+			}
 			function removeStyles() {
 				statusFeedElm.removeClass('alert-info alert-success alert-danger');
 			}
 			removeStyles();
 			if (result.status === 'unsettled') {
 				statusFeedElm.addClass(renderMap[result.player].status);
-				statusFeedElm.text('Game started! Player ' + (Number(result.player) + 1) + "'s turn");
+				var totalPlayers = renderMap.length;
+				var nextPlayer = (Number(result.player) + 1) % totalPlayers;
+				statusFeedElm.text('Game started! ' + getPlayerName(nextPlayer) + "'s turn");
 			} else if (result.status === 'draw') {
 				statusFeedElm.addClass('alert-info');
 				statusFeedElm.text('Draw! Click board to continue!')
 			} else if (result.status === 'won') {
 				statusFeedElm.addClass('alert-info');
-				statusFeedElm.text('Player ' + result.player + ' won! Click board to continue!');
+				statusFeedElm.text(getPlayerName(result.player) + ' won! Click board to continue!');
 			}
 		};
 
 		this.updateScore = function (score) {
-			for (var k in scoreStatusElms) {
-				scoreStatusElms[k].text(score[k]);
+			for (var k in score) {
+				$('#player-score-' + String(k) + ' .player-score').text(score[k]);
 			}
 		};
 
@@ -822,7 +842,7 @@ $('document').ready(function() {
 		};
 
 		this.setup = function () {
-			var setupCollector = {
+			var collectInput = {
 				board: function (cols, rows) {
 					if (cols && rows) {
 						model.rows = rows;
@@ -830,21 +850,17 @@ $('document').ready(function() {
 
 						model.cellsToWin = Math.max(Math.floor(0.3*model.rows), 3);
 
-						model.init();
 					} else {
 						throw 'Invalid rows and cols input';
 					}
-					console.log('cols', cols, model);
 				},
 
-				players: function (names, types) {
-					var n = names.length;
-					model.playerNames = names;
-					model.players = Array(n).fill('AI');
-					types.forEach(function (x, i) {
-						if (x !== 'Computer') {
-							model.players[i] = 'Human';
-						}
+				players: function (playerSetups) {
+					model.playerNames = playerSetups.map(function (x) {
+						return x.name;
+					});
+					model.players = playerSetups.map(function (x) {
+						return x.type;
 					});
 				},
 
@@ -861,10 +877,6 @@ $('document').ready(function() {
 			view.bindRowsColsSelection();
 			var formsValid = true;
 
-			// symbol selector
-			// set players
-			// set each player
-
 
 			var modalElm = $('#game-setup');
 			modalElm.modal('show');
@@ -873,11 +885,11 @@ $('document').ready(function() {
 
 			formElm.on({
 				'invalid.bs.validator': function (e) {
-					console.log('invalid');
+					// console.log('invalid');
 					formsValid = false;
 				},
 				'valid.bs.validator': function (e) {
-					console.log('valid');
+					// console.log('valid');
 					formsValid = true;
 				},
 				'validated.bs.validator': function (e) {
@@ -893,10 +905,28 @@ $('document').ready(function() {
 				if (formsValid) {
 					var rows = Number($('#boardRowsInput').val());
 					var cols = Number($('#boardColsInput').val());
-					setupCollector.board(rows, cols);
+					collectInput.board(rows, cols);
 
-					// var players = $()
+					var playerConfigs = $('.player-setup').toArray().map(function (elm) {
+						return {
+							name: $(elm).find('.player-name-setup label input').val(),
+							type: $(elm).find('.player-type-setup label input').prop('checked') ? 'AI' : 'Human'
+						}
+					});
+					collectInput.players(playerConfigs);
 
+
+					// whether player 1 selected X
+					collectInput.symbol($('#player-1-symbol-x').prop('checked'));					
+					model.init();
+
+					// import into view
+					playerConfigs.forEach(function (config, i) {
+						config.symbol = model.playerSymbols[i];
+					});
+					view.init(playerConfigs);
+					
+					// GlobalE = model;
 					modalElm.modal('hide');
 				}
 			});
@@ -919,7 +949,6 @@ $('document').ready(function() {
 			.then(function (argument) {
 				controller.startGame();
 				controller.initView();
-				console.log(model);
 				console.assert(model.rows === 3 && model.cols === 3);
 				console.assert([0, 1].indexOf(model.currentPlayer.getMark()) !== -1);
 				controller.gameOn(model.firstPlayer);
