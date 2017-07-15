@@ -9,6 +9,38 @@
 
 ## Tictactoe - More than a game
 
+### High-Level Structure
+- Features:
+	+ Unbeatable if played at classical mode - 3 x 3 board, 2 players, one is Computer.
+	+ Multiplayer: 2 - 10 players, theoretically could be infinite, but highly unlikely.
+	+ Player type configurable: could either be Human or Computer
+	+ Board size customizable: capped at 100 x 100, at which it is already hard to follow.
+	+ User-friendly setup diaglog
+	+ It is cool just to look at the play-out between bots
+	+ There is lots of room to improve Computer AI, adding strategies, counter algorithms, etc.
+
+![Game Setup](http://i.imgur.com/eXxIuc2.png)
+![Game playing](http://i.imgur.com/OfLcVBW.png)
+
+
+- Using [MVC](https://softwareengineering.stackexchange.com/questions/234116/model-view-controller-does-the-user-interact-with-the-view-or-with-the-controll) pattern
+```javascript
+model = {
+		
+};
+
+view = function () {
+	
+}
+```
+
+- Minmax algorithm for 3x3 board size or there is less then 10 moves left, which makes outcomes predictable, efficiently.
+```javascript
+```
+- Random move for larger board
+
+
+
 - [Dynamic viewport sized typography](https://css-tricks.com/viewport-sized-typography/): scaling font size according to meta defined viewport. Units of `vw` instead of `%` or `px`. ([additional](https://stackoverflow.com/questions/16056591/font-scaling-based-on-width-of-container/19814948#19814948))
 - [Hide elements with hidden class](https://stackoverflow.com/questions/18568736/how-to-hide-element-using-twitter-bootstrap-3-and-show-it-using-jquery): `.addClass('hidden')`
 - [Element append, the slow and fast ways](https://howchoo.com/g/mmu0nguznjg/learn-the-slow-and-fast-way-to-append-elements-to-the-dom): 
