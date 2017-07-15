@@ -26,20 +26,99 @@
 - Using [MVC](https://softwareengineering.stackexchange.com/questions/234116/model-view-controller-does-the-user-interact-with-the-view-or-with-the-controll) pattern
 ```javascript
 model = {
-		
+	data: ['boardData', 'playersData', 'currentGameStatus'],
+	methods: [
+		init: function (data) {
+			constructInnerDataForBoardAndPlayers ();
+		},
+		reset: function () {
+			resetGameStatus();
+			resetScoreStatus();
+		}
+	],
 };
 
-view = function () {
-	
+view = {
+	methods: [
+		display: function () {
+			renderBoard();
+			renderMove();
+			renderScores();
+		},
+		input: function () {
+			collectInputsFromPlayers();
+			passToController();
+		}
+		UI: function () {
+			bindMethods(onConfigurationForms);
+		}
+	]
+};
+
+controller = {
+	methods: [
+		setupData: function () {
+			collectInputsFromView();
+			initModelAccordingToSetup();
+		},
+		administrateGamePlay: function () {
+			askForPlayerMoves();
+			updateGameStatus();
+			askViewToRenderGameAndStatus();
+			repeat();
+		}
+	]
 }
 ```
 
 - Minmax algorithm for 3x3 board size or there is less then 10 moves left, which makes outcomes predictable, efficiently.
 ```javascript
+minmax: function (game, depth) {
+	function scoreGame(game, player) {
+		const n = game.board.length;
+		var score = {
+			'won': 2*n*n,
+			'lost': -2*n*n,
+			'draw': 0
+		};
+
+		var result = TicTacToe.checkGameStatus(game);
+		var status = result.status;
+
+		if (status === 'draw') {
+			return score.draw;
+		} else if (status === 'won') {
+			return [score.lost, score.won][Number(result.winner === player)];
+		} else {
+			return null;
+		}
+	}
+	var playedOut = unoccupiedSlots.map(function (slot) {
+		var newBoard = copyFillSlot(board, slot, player);
+		newGame.board = newBoard;
+		var score = scoreGame(newGame, player);
+
+		if (score != null) {
+			// Base case termination
+			return [score+depth, slot];
+		} else {
+			var tic = TicTacToe.minmax(newGame, depth-1);
+			return [-tic[0], slot];// their wins are my loss
+		}
+	});
+
+	var bestMove = playedOut.reduce(function (a, p) {
+		if (a[0] === p[0]) {
+			// adding some random factor for equivalent choices
+			return [a, p][randint(2)];
+		}
+		return a[0] > p[0] ? a : p;
+	});
+	return bestMove;
+}
 ```
-- Random move for larger board
 
-
+### Javascript Techniques
 
 - [Dynamic viewport sized typography](https://css-tricks.com/viewport-sized-typography/): scaling font size according to meta defined viewport. Units of `vw` instead of `%` or `px`. ([additional](https://stackoverflow.com/questions/16056591/font-scaling-based-on-width-of-container/19814948#19814948))
 - [Hide elements with hidden class](https://stackoverflow.com/questions/18568736/how-to-hide-element-using-twitter-bootstrap-3-and-show-it-using-jquery): `.addClass('hidden')`
@@ -51,8 +130,11 @@ view = function () {
 - [jQuery event binding: .on, .off, .one](http://www.andismith.com/blog/2011/11/on-and-off/): conveninent bind event handlers to UI elements.
 - [Event delagation](https://davidwalsh.name/event-delegate): an important mechansim to bind events efficiently. In tictactoe, instead of binding click events to all the available cells, which are huge in n by n problem, we only need to bind to the parent element and extract the event detail (which child element clicked) in the implementation.
 - [Making responsive squares using table](https://stackoverflow.com/questions/20456694/grid-of-responsive-squares/20457076#20457076): for generic tabular data and layout, instead of using Bootstrap's grid system, which is limited by 12 columns denomination, consider use table with dynamic sizing.
-- [Array copying](https://stackoverflow.com/questions/3978492/javascript-fastest-way-to-duplicate-an-array-slice-vs-for-loop): fastest ways are `while (i--) copy();` and .slice(0, n)`
-- setTimeout(fn, waitTime) is asynchronous: hence loops involved promises using `setTimeout` does not cause stackOverFlow. The function simply fires direction asynchrounously and return at the end of each iteration.
+
+![](https://i.stack.imgur.com/s0MqH.jpg)
+
+- [Array copying](https://stackoverflow.com/questions/3978492/javascript-fastest-way-to-duplicate-an-array-slice-vs-for-loop): fastest ways are `while (i--) copy();` and `.slice(0, n)`
+- `setTimeout(fn, waitTime)` is asynchronous: hence loops involved promises using `setTimeout` does not cause stackOverFlow. The function simply fires direction asynchrounously and return at the end of each iteration.
 - ARIA stands for accessibility
 - UX selection [rules of thumb](https://ux.stackexchange.com/questions/10728/dropdown-vs-radio-button), [more indept](https://www.nngroup.com/articles/checkboxes-vs-radio-buttons/):
 	+ binary: checkbox
@@ -64,7 +146,6 @@ view = function () {
 ![](https://i.stack.imgur.com/3eDK3.png)
 
 
-![](https://i.stack.imgur.com/s0MqH.jpg)
 
 ## Chrome's performance analysis tool:
 ![Imgur](http://i.imgur.com/I0v2dft.png)
@@ -91,3 +172,4 @@ In practice, the two patterns regularly intertwine, even in a single application
 ## Tools:
 - Math rendering: [MathJax](https://www.mathjax.org/),
  [Katex](https://github.com/Khan/KaTeX)
+- Form validation: [Bootstrap Validator](http://1000hz.github.io/bootstrap-validator/)

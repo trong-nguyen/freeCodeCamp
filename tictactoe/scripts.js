@@ -1,5 +1,6 @@
 var CONSTANTS = {
 	UNOCCUPIED: null,
+	GAMESPEED: 500,
 };
 
 var TicTacToe = {
@@ -373,7 +374,7 @@ $('document').ready(function() {
 		var self = this;
 
 		var boardElm = $('#board');
-		var statusFeedElm = $('#game-status');
+		// var statusFeedElm = $('#game-status');
 		var scoreStatusElms = [$('#player-score-0'), $('#player-score-1')];
 		var cellTemlate = boardElm.find('tr').first().clone();
 
@@ -638,6 +639,7 @@ $('document').ready(function() {
 		};
 
 		this.displayStatus = function (result) {
+			var statusFeedElm = $('#game-status');
 			function getPlayerName (p) {
 				return renderMap[p].name;
 			}
@@ -654,12 +656,17 @@ $('document').ready(function() {
 			var nextPlayer = (Number(result.player) + 1) % totalPlayers;
 			var status = renderMap[result.player].status;
 			var prevStatus = renderMap[(Number(result.player) - 1 + totalPlayers) % totalPlayers].status;
-			if (result.status === 'unsettled') {
+
+			if (result.status === 'starts') {
+				statusFeedElm.addClass(prevStatus);
+				statusFeedElm.text('Game started! ' + getPlayerName(result.player) + "'s turn");
+			} else if (result.status === 'unsettled') {
 				statusFeedElm.addClass(status);
-				statusFeedElm.text('Game started! ' + getPlayerName(nextPlayer) + "'s turn");
+				statusFeedElm.text(getPlayerName(nextPlayer) + "'s turn");
 			} else if (result.status === 'draw') {
 				statusFeedElm.addClass('bg-inverse');
 				statusFeedElm.text('Draw! Click board to continue!')
+				console.log('view drawn');
 			} else if (result.status === 'won') {
 				statusFeedElm.addClass(prevStatus);
 				statusFeedElm.text(getPlayerName(result.player) + ' won! Click board to continue!');
@@ -725,7 +732,7 @@ $('document').ready(function() {
 	var controller = new (function (model, view) {
 		var model = model;
 		var view = view;
-		var waitTimeBetweenMoves = 500;
+		var waitTimeBetweenMoves = CONSTANTS.GAMESPEED;
 		var inputHotline = {
 			on: function () {
 					console.log('hotline on');
@@ -825,14 +832,15 @@ $('document').ready(function() {
 				function cleanup() {
 					model.resetGame();
 					self.initView();
-					resolve(result);
+					resolve();
 				}
 
 				if (settled) {
 					view.displaySettledResult(result, model.gameScore, cleanup);
 				} else {
+					view.displayStatus(result);
 					model.currentPlayer = getNextPlayer(model.currentPlayer);
-					resolve(result);
+					resolve();
 				}
 			});
 		}
@@ -841,7 +849,6 @@ $('document').ready(function() {
 			waitForMove()
 				.then(updateBoard)
 				.then(continueOrReset)
-				.then(view.displayStatus)
 				.catch(function (error) {
 					console.log(error);
 				})
@@ -854,6 +861,14 @@ $('document').ready(function() {
 
 		this.initView = function () {
 			view.renderBoard(model.board);
+			
+			var result = {
+				status: 'starts',
+				player: model.currentPlayer.getMark(),
+				next: nextPlayerMark
+			};
+
+			view.displayStatus(result);
 		};
 
 		this.setup = function () {
