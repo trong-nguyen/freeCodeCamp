@@ -157,11 +157,16 @@ Asynchronous programming are generally involved with Serial Flow and Parallel Fl
 - Parallel flow: in contrast, paralle flow does not care much about the order of execution, as long as they are executed.
 In practice, the two patterns regularly intertwine, even in a single application.
 
-## Architectural Patterns
+## Computer Science
+### Web developement overview
+[Web development is different and better](https://www.oreilly.com/ideas/web-application-development-is-different-and-better)
+
+### Architectural Patterns
 [Patterns in archtectural design](https://en.wikipedia.org/wiki/Architectural_pattern)
 
-## Module pattern
+### Module pattern
 [Article](http://www.adequatelygood.com/JavaScript-Module-Pattern-In-Depth.html)
+
 
 ## Algorithms:
 ### Roman conversions ([here](http://www.rapidtables.com/convert/number/how-number-to-roman-numerals.htm)): 
