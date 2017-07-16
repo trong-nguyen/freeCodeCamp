@@ -118,7 +118,7 @@ minmax: function (game, depth) {
 }
 ```
 
-### Javascript Techniques
+## Javascript Techniques
 
 - [Dynamic viewport sized typography](https://css-tricks.com/viewport-sized-typography/): scaling font size according to meta defined viewport. Units of `vw` instead of `%` or `px`. ([additional](https://stackoverflow.com/questions/16056591/font-scaling-based-on-width-of-container/19814948#19814948))
 - [Hide elements with hidden class](https://stackoverflow.com/questions/18568736/how-to-hide-element-using-twitter-bootstrap-3-and-show-it-using-jquery): `.addClass('hidden')`
@@ -144,6 +144,14 @@ minmax: function (game, depth) {
 	+ lots of options: dropdown with search
 
 ![](https://i.stack.imgur.com/3eDK3.png)
+
+- [What does `this` could mean and do in JavaScript](https://stackoverflow.com/questions/13441307/how-does-the-this-keyword-in-javascript-act-within-an-object-literal): it is late binded, really late, as late as possible.
+	+ Constructor: bounded object
+	+ Method: the method's caller
+	+ In events' handler: DOM element
+	+ `call` or `apply`: the argument in the call
+	+ Outside anything (and not in `strict` mode): global object (`window` on browsers)
+	+ In arrow (`=>`) function: early bound to the object
 
 
 
