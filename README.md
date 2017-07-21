@@ -118,6 +118,18 @@ minmax: function (game, depth) {
 }
 ```
 
+## Simon - Memory Testing Game
+
+![Imgur](http://i.imgur.com/yXiO4Y7.png)
+
+Features:
+- Logic-wise, allows arbitrary number of notes (buttons) and sequence sizes.
+- UI-wise, allows standard 4 button-ed games.
+
+Takeaways:
+- Plan carefully before writing any line of code.
+- Control flow with asynchrous programming. `Promise.all([])` and `Promise.resolve()`. Need to learn more about control flow management.
+
 ## Javascript Techniques
 
 - [Dynamic viewport sized typography](https://css-tricks.com/viewport-sized-typography/): scaling font size according to meta defined viewport. Units of `vw` instead of `%` or `px`. ([additional](https://stackoverflow.com/questions/16056591/font-scaling-based-on-width-of-container/19814948#19814948))
@@ -153,6 +165,30 @@ minmax: function (game, depth) {
 	+ Outside anything (and not in `strict` mode): global object (`window` on browsers)
 	+ In arrow (`=>`) function: early bound to the object
 
+- Play sound with HTML5 `<audio>` tags: due to caching or whatever reasons, a continuous activation of `.play()` method might not produce equivalent number of sounds (like click or beep or shoot sounds in games). To overcome this issue, clone the element that contains the sound and `.play()` its audio everytime we would like to play sound on it. [Reference](https://stackoverflow.com/questions/6893080/html5-audio-play-sound-repeatedly-on-click-regardless-if-previous-iteration-h)
+
+- Module pattern with IIFE
+```javascript
+var module = (function (configs) {
+	var privateMember1 = 'someValue';
+	function privateMethod2() {
+		doSomething();
+	}
+
+	return {
+		publicMember: 'publicValue',
+		publicMethod: function (arguments) {
+			mightUsePrivateMethods();
+		},
+
+		get method () {
+		},
+
+		set method (value) {
+		},
+	};
+})();
+```
 
 
 ## Chrome's performance analysis tool:

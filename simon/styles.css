@@ -1,0 +1,74 @@
+.container {
+  z-index: 15;
+}
+
+.ring {
+  position:relative;
+  width:360px;
+  height:360px;
+  margin:0 auto;
+}
+
+#status {
+  width: 360px;
+  font-size: 28px;
+}
+
+.quarter {
+  position:absolute;
+  width:50%;
+  height:50%;
+  transition:background-color 0.2s ease-in-out;
+  line-height: 180px;
+  font-size: 28px;
+}
+.quarter:hover {
+  /* opacity: 0.8; */
+  border: solid;
+}
+.quarter1 {
+  top:0;
+  left:0;
+  background-color:red;
+  border-radius:100% 0 0 0;
+}
+.quarter2 {
+  top:0;
+  right:0;
+  background-color:blue;
+  border-radius:0 100% 0 0 ;
+}
+.quarter3 {
+  bottom:0;
+  right:0;
+  background-color:green;
+  border-radius:0 0 100% 0 ;
+}
+.quarter4 {
+  bottom:0;
+  left:0;
+  background-color:orange;
+  border-radius:0 0 0 100%;
+}
+.cutout {
+  width:50%;
+  height:50%;
+  background-color:white;
+  position:absolute;
+  top:25%;
+  left:25%;
+  border-radius:50%;
+  /* border: 3px solid #000; */  
+  z-index: 2;  
+}
+
+.overlay {
+    position:fixed;
+    top:0;
+    bottom:0;
+    left:0;
+    right:0;
+    background-color:#1b1919;
+    opacity:0.8;
+    z-index:10;
+}

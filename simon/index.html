@@ -8,6 +8,45 @@
 </head>
 <body>
 
+<h1 class="display-4 text-center text-primary">Simon Game</h1>
+<h3 class="text-center text-primary">Let's test your memory</h3>
+
+<div class="overlay" style="display: none;"></div>
+
+<div class="container my-5">
+  <div class="ring">
+    <div class="quarter text-center text-white quarter1" id="btn-1">1
+      <audio src="https://s3.amazonaws.com/freecodecamp/simonSound1.mp3" autostart="false" ></audio>
+    </div>
+    <div class="quarter text-center text-white quarter2" id="btn-2">2
+      <audio src="https://s3.amazonaws.com/freecodecamp/simonSound2.mp3" autostart="false" ></audio>
+    </div>
+    <div class="quarter text-center text-white quarter3" id="btn-3">3
+      <audio src="https://s3.amazonaws.com/freecodecamp/simonSound3.mp3" autostart="false" ></audio>
+    </div>
+    <div class="quarter text-center text-white quarter4" id="btn-4">4
+      <audio src="https://s3.amazonaws.com/freecodecamp/simonSound4.mp3" autostart="false" ></audio>
+    </div>
+    <div class="cutout text-center py-5">
+      <div class="lead text-primary" id="round-status"><strong>Round 1</strong></div>
+      <div>
+        <label for="enable-strictmode" class="text-primary">Hard</label>
+        <input type="checkbox" id="enable-strictmode" name="enable-strictmode">
+      </div>
+      <div class="btn-group">
+        <button type="button" class="btn btn-outline-danger" id="btn-reset">Reset</button>
+      </div>
+    </div>
+  </div>
+  <div class="text-center mx-auto alert alert-info my-4" id="status">
+    Bring your memory to a test!
+  </div>
+</div>
+
+
+<div class="text-center mt-5">
+  <a href="https://www.linkedin.com/in/nguyentrong/">Luke Production</a>
+</div>
 
 <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/js/bootstrap.min.js" integrity="sha384-vBWWzlZJ8ea9aCX4pEW3rVHjgjt7zpkNpZk+02D9phzyeVkE+jo0ieGizqPLForn" crossorigin="anonymous"></script>

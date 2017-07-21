@@ -70,50 +70,144 @@ var Model = function (settings) {
 					correctLevel = 0;
 				}
 				correctMove = 0;
-				return false;
+				return 'incorrect';
 			}
+		},
+
+		setStrictMode: function (value) {
+			strictMode = value;
 		},
 	}
 };
 
 var view = (function () {
 	var doc = $(document);
+	var statusElm = $('#status');
+	var roundElm = $('#round-status');
+	var btnElms = [];
+	var overlayElm = $('.overlay');
+	var statuses = {
+		won: 'Game ended, you won!',
+		incorrect: 'Incorrect pattern, try again!',
+		reset: 'Successfully reset, new game started!',
+		correct: 'Correct, keep going!',
+		levelUp: 'Leveled up, proceed to next round!'
+	};
+	var statusStyles = {
+		won: 'alert-success',
+		incorrect: 'alert-danger',
+		reset: 'alert-danger',
+		levelUp: 'alert-info',
+		correct: 'alert-info',
+	};
+
+	function blink(elm, duration) {
+		duration = duration || 50;
+		return new Promise(function (resolve, reject) {
+			elm.fadeOut(duration).fadeIn(duration, resolve);
+		});
+	}
+
+	function beep(elm) {
+		// the clone() is crucial or else consecutive play()
+		// might not produce consecutive sounds
+		return elm.clone().find('audio')[0].play();
+	}
+
+	function removeStatusStyles () {
+		statusElm.removeClass(Object.values(statusStyles).join(' '));
+	}
+
+	function displayStatus(result, message) {
+		removeStatusStyles();
+		message = message || statuses[result];
+		var toBlink = statusElm.text() === message;
+		statusElm.text(message)
+
+		style = statusStyles[result] || 'alert-info';
+		statusElm.addClass(style);
+
+		if (toBlink) {
+			blink(statusElm);
+		}
+	}
+
+	function getButton(note) {
+		return $('#btn-' + String(note));
+	}
+
+	function addEffects(note, duration) {
+		var btn = getButton(note);
+		return Promise.all([
+			blink(btn, duration),
+			beep(btn),
+		]);
+	}
+
 	return {
 		display: function (what) {
-			console.log(what);
+			statusElm.text(what);
 		},
 
-		render: function (what) {
-			console.log('Rendered', what);
+		displayRound: function (round) {
+			roundElm.text('Round ' + round);
 		},
 
 		displayPattern: function (pattern) {
-			console.log('Pattern preview', pattern);
-			return Promise.resolve();
+			var wait = 500;
+			return Promise.all(pattern.map(function (note, i) {
+				return new Promise(function (resolve, reject) {
+					setTimeout(function () {
+						var btn = getButton(note);
+						addEffects(note, 200).then(resolve);
+					}, wait*i);
+				});
+			}));
 		},
 
-		displaySettled: function (result) {
-			if (result === 'won') {
-				console.log('Game ended, you won!')
-			} else {
-				console.log('Incorrect pattern, try again!')
-			}
+		displayStatus: displayStatus,
+
+		displaySettled: function (result, callback) {
+			overlayElm.show();
+			displayStatus(result);
+			$(document).one('click', function () {
+				overlayElm.hide();
+				callback();
+			});
 		},
 
 		awaitInputs: function (simonButtons, callback) {
 			doc.keypress(function (e) {
-				console.log('You entered: ', e.keyCode - 48);
 				var pressable = simonButtons.map(function (b) {
 					return b + 48;
 				});
 				if (pressable.indexOf(e.keyCode) !== -1) {
-					callback(e.keyCode - 48);
+					var note = e.keyCode - 48;
+					var btn = getButton(note);
+					addEffects(note, 50);
+					callback(note);
 				}
+			});
+
+			simonButtons.forEach(function (note) {
+				getButton(note).click(function (e) {
+					addEffects(note, 50);
+					callback(note);
+				});
+			});
+
+			btnElms = simonButtons.map(getButton);
+
+			$('#btn-reset').one('click', function (e) {
+				callback('reset');
 			});
 		},
 
 		ignoreInputs: function () {
 			doc.off();
+			btnElms.forEach(function (btn) {
+				btn.off();
+			});
 		}
 	};
 })();
@@ -121,7 +215,7 @@ var view = (function () {
 var controller = (function (v){
 	var model = Model({
 		buttons: 4,
-		size: 5
+		size: 20
 	});
 
 	var view = v;
@@ -129,13 +223,9 @@ var controller = (function (v){
 	var waitBetweenKeys = 200;
 	var waitBetweenRounds = 1000;
 
-	function init () {
-		view.render();
-	};
-
-	function playPattern(pattern) {
+	function playPattern() {
 		return new Promise(function (resolve, reject) {
-			view.displayPattern(pattern)
+			view.displayPattern(model.sequence)
 				.then(function () {
 					resolve();
 				});
@@ -143,62 +233,79 @@ var controller = (function (v){
 	}
 
 	function settleGame(result) {
-		view.displaySettled(result);
-		$(document).one('click', function (argument) {
-			gameOn();
-		});
-	}
-
-	function restartRound() {
-		setTimeout(gameOn, waitBetweenRounds);
+		view.displaySettled(result, gameOn);
 	}
 
 	function checkInput(input) {
-		var result = model.checkMove(input);
-		if (result === 'won') {
+		if (input === 'reset') {
 			disableUserInput();
-			settleGame(result);
-		} else if (result === 'levelUp') {
-			view.display('Leveled up, proceed to next round!');
-			disableUserInput();
-			setTimeout(gameOn, waitBetweenRounds);
-		} else if (result === 'correct') {
-			view.display('Correct, keep going!');
-		} else {
-			if (model.isStrict()) {
+			model.resetSequence();			
+			view.displayRound(model.sequence.length);
+			settleGame('reset');
+		}
+		else {
+			var result = model.checkMove(input);
+			view.displayStatus(result);
+			if (result !== 'correct') {
+				// correct means more inputs are coming
 				disableUserInput();
+			}
+
+			if (result === 'won') {
 				settleGame(result);
-			} else {
-				view.display('Incorrect, try again!');
-				disableUserInput();
+			} else if (result === 'levelUp') {
 				setTimeout(gameOn, waitBetweenRounds);
+			} else if (result === 'correct') {
+				view.awaitInputs
+			}
+			else if (result === 'incorrect'){
+				if (model.isStrict()) {
+					settleGame(result);
+				} else {
+					setTimeout(gameOn, waitBetweenRounds);
+				}
 			}
 		}
+		view.displayRound(model.sequence.length);
 	};
 
 	function disableUserInput() {
 		view.ignoreInputs();
 	}
 
-	function iterate() {
+	function enableUserInput() {
 		view.awaitInputs(model.getButtons(), checkInput);
 	}
 
 	function gameOn() {
-		playPattern(model.sequence)
-			.then(iterate)
+		// wait for seconds before starting game
+		(function (argument) {
+			return new Promise(function (resolve, reject) {
+				setTimeout(resolve, 1000);
+			});
+		})().then(playPattern)
+			.then(enableUserInput)
 			.catch(function (error) {
 				console.log(error);
 			});
 	}
 
 	return {
-		init: init,
+		init: function () {
+			view.displayStatus(null, 'Game started, playing pattern ...');
+
+			var strictBtn = $('#enable-strictmode');
+			strictBtn.change(function (argument) {
+				model.setStrictMode(strictBtn.prop('checked'));
+			})
+		},
 		gameOn: gameOn
 	};
 })(view);
 
-(function init(argument) {
-	// view.render();
-	controller.gameOn();
-})();
+$('document').ready(function() {
+	(function init(argument) {
+		controller.init();
+		controller.gameOn();
+	})();
+});
